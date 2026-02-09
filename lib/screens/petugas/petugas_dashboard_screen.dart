@@ -275,7 +275,7 @@ class _PetugasDashboardScreenState extends State<PetugasDashboardScreen>
   }
 
   Widget _buildRevenueCard(String title, dynamic amount) {
-    final revenue = (amount is int) ? amount : (amount is double) ? amount.toInt() : 0;
+    final num revenue = num.tryParse(amount?.toString() ?? '0') ?? 0;
     
     return Container(
       padding: const EdgeInsets.all(12),
@@ -311,7 +311,7 @@ class _PetugasDashboardScreenState extends State<PetugasDashboardScreen>
                   locale: 'id_ID',
                   symbol: 'Rp',
                   decimalDigits: 0,
-                ).format(num.tryParse(revenue.toString()) ?? 0),
+                ).format(revenue),
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
