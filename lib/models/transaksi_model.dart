@@ -15,6 +15,7 @@ class TransaksiModel {
   final String? jenisKendaraan;
   final String? namaArea;
   final String? namaPetugas;
+  final int? tarifNambah;
 
   TransaksiModel({
     required this.idParkir,
@@ -31,6 +32,7 @@ class TransaksiModel {
     this.jenisKendaraan,
     this.namaArea,
     this.namaPetugas,
+    this.tarifNambah,
   });
 
   factory TransaksiModel.fromJson(Map<String, dynamic> json) {
@@ -40,9 +42,9 @@ class TransaksiModel {
       idTarif: json['id_tarif'] ?? 0,
       idArea: json['id_area'] ?? 0,
       idUser: json['id_user'] ?? 0,
-      waktuMasuk: DateTime.tryParse(json['waktu_masuk']?.toString() ?? '') ?? DateTime.now(),
+      waktuMasuk: DateTime.tryParse(json['waktu_masuk']?.toString() ?? '')?.toLocal() ?? DateTime.now(),
       waktuKeluar: json['waktu_keluar'] != null 
-          ? DateTime.tryParse(json['waktu_keluar'].toString()) 
+          ? DateTime.tryParse(json['waktu_keluar'].toString())?.toLocal()
           : null,
       durasiJam: json['durasi_jam'] != null 
           ? int.tryParse(json['durasi_jam'].toString()) 
@@ -55,6 +57,9 @@ class TransaksiModel {
       jenisKendaraan: json['jenis_kendaraan'],
       namaArea: json['nama_area'],
       namaPetugas: json['nama_petugas'] ?? json['petugas_nama'],
+      tarifNambah: json['tarif_nambah'] != null 
+          ? int.tryParse(json['tarif_nambah'].toString()) 
+          : null,
     );
   }
 

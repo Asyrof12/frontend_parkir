@@ -193,13 +193,25 @@ class _TarifManagementScreenState extends State<TarifManagementScreen> {
                               ),
                               subtitle: Padding(
                                 padding: const EdgeInsets.only(top: 4),
-                                child: Text(
-                                  '${tarif.formattedTarif}/jam',
-                                  style: TextStyle(
-                                    color: AppColors.primary,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 15,
-                                  ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Awal: ${tarif.formattedTarif}',
+                                      style: TextStyle(
+                                        color: AppColors.primary,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                    Text(
+                                      'Nambah: Rp ${tarif.tarifNambah}/jam',
+                                      style: const TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                               trailing: PopupMenuButton(
@@ -263,6 +275,7 @@ class _TarifFormDialogState extends State<TarifFormDialog> {
   final _formKey = GlobalKey<FormState>();
   String? _selectedJenis;
   late TextEditingController _tarifController;
+  late TextEditingController _nambahController;
   bool _isLoading = false;
 
   @override
@@ -271,6 +284,9 @@ class _TarifFormDialogState extends State<TarifFormDialog> {
 
     _tarifController = TextEditingController(
       text: widget.tarif?.tarifPerJam.toString() ?? '',
+    );
+    _nambahController = TextEditingController(
+      text: widget.tarif?.tarifNambah.toString() ?? '',
     );
 
     if (widget.tarif != null) {
@@ -288,6 +304,7 @@ class _TarifFormDialogState extends State<TarifFormDialog> {
   @override
   void dispose() {
     _tarifController.dispose();
+    _nambahController.dispose();
     super.dispose();
   }
 
@@ -305,6 +322,7 @@ class _TarifFormDialogState extends State<TarifFormDialog> {
     final data = {
       'jenis_kendaraan': _selectedJenis,
       'tarif_per_jam': int.parse(_tarifController.text),
+      'tarif_nambah': int.parse(_nambahController.text),
     };
 
     final result = widget.tarif == null
@@ -387,6 +405,21 @@ class _TarifFormDialogState extends State<TarifFormDialog> {
               keyboardType: TextInputType.number,
               validator: (value) =>
                   FormValidators.positiveNumber(value, 'Tarif'),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _nambahController,
+              decoration: InputDecoration(
+                labelText: 'Tarif Nambah / Jam (Rp)',
+                prefixIcon: const Icon(Icons.add_circle_outline_rounded),
+                hintText: 'Contoh: 1000',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              keyboardType: TextInputType.number,
+              validator: (value) =>
+                  FormValidators.positiveNumber(value, 'Tarif Nambah'),
             ),
           ],
         ),

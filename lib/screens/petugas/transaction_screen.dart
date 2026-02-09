@@ -551,18 +551,12 @@ class _TransaksiKeluarTabState extends State<TransaksiKeluarTab> {
 
     final tarif = TarifModel.fromJson(tarifResult['data']);
     
-    int durasiJam;
-    int biayaTotal;
-
-    // Grace period check (5 minutes)
-    if (duration.inMinutes < 5) {
-      durasiJam = 0;
-      biayaTotal = 0;
-    } else {
-      durasiJam = (duration.inMinutes / 60).ceil();
-      if (durasiJam == 0) durasiJam = 1; // Minimum 1 hour if > 5 minutes
-      biayaTotal = durasiJam * tarif.tarifPerJam;
-    }
+    int durasiMenit = duration.inMinutes;
+    int jamTambahan = (durasiMenit / 60).ceil() - 1;
+    if (jamTambahan < 0) jamTambahan = 0;
+    
+    int durasiJam = jamTambahan + 1; // Total hour representation for UI
+    int biayaTotal = tarif.tarifPerJam + (jamTambahan * tarif.tarifNambah);
 
     // Get user info
     final user = await AuthService.getUser();
@@ -617,8 +611,9 @@ class _TransaksiKeluarTabState extends State<TransaksiKeluarTab> {
             ),
             _buildInfoRow('Durasi', '$durasiJam jam'),
             const Divider(height: 24),
-            _buildInfoRow('Tarif', '${tarif.formattedTarif}/jam'),
-            _buildInfoRow('Durasi', '$durasiJam jam'),
+            _buildInfoRow('Tarif Awal', 'Rp ${tarif.tarifPerJam}'),
+            if (jamTambahan > 0)
+              _buildInfoRow('Nambah ($jamTambahan jam)', 'Rp ${jamTambahan * tarif.tarifNambah}'),
             const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.all(12),
@@ -705,6 +700,8 @@ class _TransaksiKeluarTabState extends State<TransaksiKeluarTab> {
     required TarifModel tarif,
     required String namaPetugas,
   }) async {
+    final int jamTambahan = durasiJam - 1 > 0 ? durasiJam - 1 : 0;
+    
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -808,7 +805,8 @@ class _TransaksiKeluarTabState extends State<TransaksiKeluarTab> {
                   platNomor: transaksi.platNomor ?? '-',
                   jenisKendaraan: transaksi.jenisKendaraan ?? '-',
                   namaArea: transaksi.namaArea ?? '-',
-                  tarifPerJam: '${tarif.formattedTarif}/jam',
+                  tarifAwal: 'Rp ${tarif.tarifPerJam}',
+                  tarifNambah: 'Rp ${jamTambahan * tarif.tarifNambah}',
                   waktuMasuk: transaksi.waktuMasuk,
                   waktuKeluar: waktuKeluar,
                   durasiJam: durasiJam,

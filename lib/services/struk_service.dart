@@ -93,7 +93,8 @@ class StrukService {
     required String platNomor,
     required String jenisKendaraan,
     required String namaArea,
-    required String tarifPerJam,
+    required String tarifAwal,
+    required String tarifNambah,
     required DateTime waktuMasuk,
     required DateTime waktuKeluar,
     required int durasiJam,
@@ -106,6 +107,9 @@ class StrukService {
       pw.Page(
         pageFormat: PdfPageFormat.roll80,
         build: (context) {
+          int jamTambahan = durasiJam - 1;
+          if (jamTambahan < 0) jamTambahan = 0;
+
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
@@ -145,8 +149,9 @@ class StrukService {
               pw.Divider(),
               
               // Biaya
-              _buildRow('Tarif', tarifPerJam),
-              _buildRow('Durasi', '$durasiJam jam'),
+              _buildRow('Tarif Awal', tarifAwal),
+              if (jamTambahan > 0) 
+                _buildRow('Nambah ($jamTambahan jam)', tarifNambah),
               pw.SizedBox(height: 8),
               pw.Container(
                 padding: const pw.EdgeInsets.all(8),

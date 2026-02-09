@@ -2,11 +2,13 @@ class TarifModel {
   final int idTarif;
   final String jenisKendaraan;
   final int tarifPerJam;
+  final int tarifNambah;
 
   TarifModel({
     required this.idTarif,
     required this.jenisKendaraan,
     required this.tarifPerJam,
+    required this.tarifNambah,
   });
 
   factory TarifModel.fromJson(Map<String, dynamic> json) {
@@ -29,6 +31,9 @@ class TarifModel {
       tarifPerJam: parseInt(
         json['tarif_per_jam'] ?? json['tarifPerJam'] ?? json['tarif'],
       ),
+      tarifNambah: parseInt(
+        json['tarif_nambah'] ?? json['tarifNambah'] ?? 0,
+      ),
     );
   }
 
@@ -37,6 +42,7 @@ class TarifModel {
       'id_tarif': idTarif,
       'jenis_kendaraan': jenisKendaraan,
       'tarif_per_jam': tarifPerJam,
+      'tarif_nambah': tarifNambah,
     };
   }
 
