@@ -1,0 +1,73 @@
+﻿Analyzing frontend_ukk...                                       
+
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\admin\admin_dashboard_screen.dart:131:60 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\admin\admin_dashboard_screen.dart:138:47 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\admin\admin_dashboard_screen.dart:198:33 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\admin\admin_dashboard_screen.dart:211:28 - deprecated_member_use
+   info - Don't invoke 'print' in production code - lib\screens\admin\log_activity_screen.dart:42:11 - avoid_print
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\admin\log_activity_screen.dart:141:27 - deprecated_member_use
+   info - Don't invoke 'print' in production code - lib\screens\admin\tarif_management_screen.dart:45:11 - avoid_print
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\screens\admin\tarif_management_screen.dart:355:15 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\admin\user_management_screen.dart:159:60 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\admin\user_management_screen.dart:179:54 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\admin\user_management_screen.dart:180:52 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\screens\admin\user_management_screen.dart:373:17 - deprecated_member_use
+   info - Don't invoke 'print' in production code - lib\screens\admin\vehicles_screen.dart:51:11 - avoid_print
+warning - Unused import: 'petugas/petugas_history_screen.dart' - lib\screens\main_shell.dart:19:8 - unused_import
+warning - Unused import: 'owner/owner_history_screen.dart' - lib\screens\main_shell.dart:23:8 - unused_import
+  error - The method 'PetugasHistoryScreen' isn't defined for the type '_MainShellState' - lib\screens\main_shell.dart:69:54 - undefined_method
+  error - The method 'OwnerHistoryScreen' isn't defined for the type '_MainShellState' - lib\screens\main_shell.dart:75:55 - undefined_method
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\main_shell.dart:106:35 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\main_shell.dart:144:49 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\owner\owner_dashboard_screen.dart:140:34 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\owner\owner_dashboard_screen.dart:185:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\owner\owner_history_screen.dart:93:68 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\petugas\petugas_dashboard_screen.dart:133:60 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\petugas\petugas_dashboard_screen.dart:140:47 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\petugas\petugas_dashboard_screen.dart:210:33 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\petugas\petugas_dashboard_screen.dart:223:28 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\petugas\petugas_dashboard_screen.dart:263:33 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\petugas\petugas_dashboard_screen.dart:276:35 - deprecated_member_use
+warning - The value of the local variable 'percentage' isn't used - lib\screens\petugas\petugas_dashboard_screen.dart:338:21 - unused_local_variable
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\petugas\petugas_dashboard_screen.dart:349:43 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\petugas\petugas_dashboard_screen.dart:440:43 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\petugas\petugas_dashboard_screen.dart:441:42 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\petugas\petugas_history_screen.dart:93:68 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\screens\petugas\transaction_screen.dart:253:23 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\screens\petugas\transaction_screen.dart:272:23 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\screens\petugas\transaction_screen.dart:290:23 - deprecated_member_use
+   info - The 'child' argument should be last in widget constructor invocations - lib\screens\petugas\transaction_screen.dart:298:27 - sort_child_properties_last
+   info - Don't use 'BuildContext's across async gaps - lib\screens\petugas\transaction_screen.dart:401:7 - use_build_context_synchronously
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\shared\onboarding_screen.dart:51:54 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\shared\profile_screen.dart:138:44 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\shared\profile_screen.dart:160:52 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\shared\splash_screen.dart:65:41 - deprecated_member_use
+   info - Don't invoke 'print' in production code - lib\services\auth_service.dart:10:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\auth_service.dart:11:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\auth_service.dart:25:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\auth_service.dart:26:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\auth_service.dart:31:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\auth_service.dart:36:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\auth_service.dart:40:7 - avoid_print
+   info - 'background' is deprecated and shouldn't be used. Use surface instead. This feature was deprecated after v3.18.0-0.1.pre - lib\utils\app_theme.dart:14:9 - deprecated_member_use
+
+flutter : 50 issues 
+found. (ran in 15.9s)
+At line:1 char:1
++ flutter analyze > 
+analysis_output.txt 
+2>&1
++ ~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~
+    + CategoryInfo   
+           : NotSpe  
+  cified: (50 issu   
+ es found. (ran i    
+n 15.9s):String)     
+[], RemoteExcep    
+tion
+    + FullyQualified 
+   ErrorId : Native  
+  CommandError
+ 
