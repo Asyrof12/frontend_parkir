@@ -1,10 +1,14 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 import '../../utils/colors.dart';
 import '../../services/api_service.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/error_widget.dart';
+import '../../services/refresh_service.dart';
+
 
 class PetugasDashboardScreen extends StatefulWidget {
   const PetugasDashboardScreen({super.key});
@@ -19,6 +23,8 @@ class _PetugasDashboardScreenState extends State<PetugasDashboardScreen>
   bool _isLoading = true;
   String? _error;
   String _userName = 'Petugas';
+  Timer? _refreshTimer;
+
 
   @override
   bool get wantKeepAlive => true;
@@ -29,13 +35,39 @@ class _PetugasDashboardScreenState extends State<PetugasDashboardScreen>
     WidgetsBinding.instance.addObserver(this);
     _loadUserName();
     _loadDashboard();
+    RefreshService.instance.addListener(_onRefreshTriggered);
+    _startPeriodicRefresh();
   }
+
+  void _startPeriodicRefresh() {
+    _refreshTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
+      if (mounted) {
+        _loadDashboard(silent: true);
+      }
+    });
+  }
+
+
+  void _onRefreshTriggered() {
+    if (mounted) {
+      _loadDashboard(silent: false);
+    }
+  }
+
+
+
+
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _refreshTimer?.cancel();
+    RefreshService.instance.removeListener(_onRefreshTriggered);
     super.dispose();
   }
+
+
+
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
@@ -54,11 +86,12 @@ class _PetugasDashboardScreenState extends State<PetugasDashboardScreen>
     }
   }
 
-  Future<void> _loadDashboard() async {
+  Future<void> _loadDashboard({bool silent = false}) async {
     setState(() {
-      _isLoading = true;
+      if (!silent) _isLoading = true;
       _error = null;
     });
+
 
     final result = await PetugasService.getDashboardPetugas();
 

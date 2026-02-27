@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../utils/colors.dart';
 import '../services/api_service.dart';
+import '../services/refresh_service.dart';
+
 
 // Shared screens
 import 'shared/profile_screen.dart';
@@ -34,6 +36,8 @@ class _MainShellState extends State<MainShell> {
   String _userRole = 'petugas'; // Default role
   bool _isLoading = true;
 
+
+
   @override
   void initState() {
     super.initState();
@@ -42,15 +46,19 @@ class _MainShellState extends State<MainShell> {
 
   Future<void> _loadUserRole() async {
     final user = await AuthService.getUser();
-    if (user != null && mounted) {
+    if (mounted) {
       setState(() {
-        _userRole = user['role'] ?? 'petugas';
+        if (user != null) {
+          _userRole = user['role'] ?? 'petugas';
+        }
         _isLoading = false;
       });
     }
   }
 
   List<_NavItem> get _navItems {
+
+
     switch (_userRole) {
       case 'admin':
         return [
@@ -93,6 +101,8 @@ class _MainShellState extends State<MainShell> {
 
     final navItems = _navItems;
 
+
+
     return Scaffold(
       body: IndexedStack(
         index: _selectedIndex,
@@ -134,7 +144,13 @@ class _MainShellState extends State<MainShell> {
   Widget _buildNavItem(int index, IconData icon, String label) {
     bool isSelected = _selectedIndex == index;
     return GestureDetector(
-      onTap: () => setState(() => _selectedIndex = index),
+      onTap: () {
+        setState(() => _selectedIndex = index);
+        // Trigger refresh otomatis untuk semua halaman
+        RefreshService.instance.refreshDashboard();
+
+      },
+
       behavior: HitTestBehavior.opaque,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 6),

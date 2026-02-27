@@ -2,10 +2,14 @@ import 'package:flutter/material.dart';
 import '../../models/kendaraan_model.dart';
 import '../../services/api_service.dart';
 import '../../utils/colors.dart';
+import '../../services/refresh_service.dart';
+
 import '../../widgets/loading_widget.dart';
 import '../../widgets/error_widget.dart';
 import '../../widgets/empty_state_widget.dart';
 import '../../utils/form_validators.dart';
+import '../../utils/notifications.dart';
+
 
 class VehiclesScreen extends StatefulWidget {
   const VehiclesScreen({super.key});
@@ -25,13 +29,21 @@ class _VehiclesScreenState extends State<VehiclesScreen> {
   void initState() {
     super.initState();
     _loadKendaraan();
+    RefreshService.instance.addListener(_onRefreshTriggered);
   }
+
+  void _onRefreshTriggered() {
+    _loadKendaraan();
+  }
+
 
   @override
   void dispose() {
     _searchController.dispose();
+    RefreshService.instance.removeListener(_onRefreshTriggered);
     super.dispose();
   }
+
 
   Future<void> _loadKendaraan() async {
     setState(() {
@@ -124,18 +136,14 @@ class _VehiclesScreenState extends State<VehiclesScreen> {
     if (!mounted) return;
 
     if (result['success']) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Kendaraan berhasil dihapus')),
-      );
+      AppNotification.success(context, 'Kendaraan berhasil dihapus');
       _loadKendaraan();
+      RefreshService.instance.refreshDashboard();
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(result['message']),
-          backgroundColor: AppColors.error,
-        ),
-      );
+
+      AppNotification.error(context, result['message']);
     }
+
   }
 
   void _showKendaraanForm([KendaraanModel? kendaraan]) {
@@ -332,11 +340,16 @@ class _KendaraanFormDialogState extends State<KendaraanFormDialog> {
 
     setState(() => _isLoading = true);
 
+    // ✅ AMBIL USER ID SECARA OTOMATIS
+    final user = await AuthService.getUser();
+    final idUser = user?['id_user'];
+
     final data = {
       'plat_nomor': _platNomorController.text.toUpperCase(),
       'jenis_kendaraan': _jenisController.text,
       'warna': _warnaController.text,
       'pemilik': _pemilikController.text,
+      if (widget.kendaraan == null && idUser != null) 'id_user': idUser,
     };
 
     final result = widget.kendaraan == null
@@ -352,24 +365,19 @@ class _KendaraanFormDialogState extends State<KendaraanFormDialog> {
 
     if (result['success']) {
       Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            widget.kendaraan == null
-                ? 'Kendaraan berhasil ditambahkan'
-                : 'Kendaraan berhasil diupdate',
-          ),
-        ),
+      AppNotification.success(
+        context,
+        widget.kendaraan == null
+            ? 'Kendaraan berhasil ditambahkan'
+            : 'Kendaraan berhasil diupdate',
       );
       widget.onSaved();
+      RefreshService.instance.refreshDashboard();
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(result['message']),
-          backgroundColor: AppColors.error,
-        ),
-      );
+
+      AppNotification.error(context, result['message']);
     }
+
   }
 
   @override

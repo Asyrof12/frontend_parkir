@@ -6,6 +6,10 @@ import '../../widgets/loading_widget.dart';
 import '../../widgets/error_widget.dart';
 import '../../widgets/empty_state_widget.dart';
 import '../../utils/form_validators.dart';
+import '../../utils/notifications.dart';
+import '../../services/refresh_service.dart';
+
+
 
 class TarifManagementScreen extends StatefulWidget {
   const TarifManagementScreen({super.key});
@@ -23,7 +27,19 @@ class _TarifManagementScreenState extends State<TarifManagementScreen> {
   void initState() {
     super.initState();
     _loadTarifs();
+    RefreshService.instance.addListener(_onRefreshTriggered);
   }
+
+  void _onRefreshTriggered() {
+    _loadTarifs();
+  }
+
+  @override
+  void dispose() {
+    RefreshService.instance.removeListener(_onRefreshTriggered);
+    super.dispose();
+  }
+
 
   Future<void> _loadTarifs() async {
     setState(() {
@@ -105,18 +121,14 @@ class _TarifManagementScreenState extends State<TarifManagementScreen> {
     if (!mounted) return;
 
     if (result['success']) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Tarif berhasil dihapus')),
-      );
+      AppNotification.success(context, 'Tarif berhasil dihapus');
       _loadTarifs();
+      RefreshService.instance.refreshDashboard();
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(result['message']),
-          backgroundColor: AppColors.error,
-        ),
-      );
+
+      AppNotification.error(context, result['message']);
     }
+
   }
 
   void _showTarifForm([TarifModel? tarif]) {
@@ -311,11 +323,10 @@ class _TarifFormDialogState extends State<TarifFormDialog> {
   Future<void> _save() async {
     if (_formKey.currentState?.validate() != true) return;
     if (_selectedJenis == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pilih jenis kendaraan terlebih dahulu')),
-      );
+      AppNotification.info(context, 'Pilih jenis kendaraan terlebih dahulu');
       return;
     }
+
 
     setState(() => _isLoading = true);
 
@@ -335,25 +346,17 @@ class _TarifFormDialogState extends State<TarifFormDialog> {
 
     if (result['success']) {
       Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            widget.tarif == null
-                ? 'Tarif berhasil ditambahkan'
-                : 'Tarif berhasil diupdate',
-          ),
-          backgroundColor: Colors.green,
-        ),
+      AppNotification.success(
+        context,
+        widget.tarif == null ? 'Tarif berhasil ditambahkan' : 'Tarif berhasil diupdate',
       );
       widget.onSaved();
+      RefreshService.instance.refreshDashboard();
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(result['message'] ?? 'Terjadi kesalahan'),
-          backgroundColor: AppColors.error,
-        ),
-      );
+
+      AppNotification.error(context, result['message'] ?? 'Terjadi kesalahan');
     }
+
   }
 
   @override

@@ -11,6 +11,10 @@ import '../../utils/colors.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/error_widget.dart';
 import '../../widgets/empty_state_widget.dart';
+import '../../utils/notifications.dart';
+import '../../services/refresh_service.dart';
+
+
 
 class TransactionScreen extends StatefulWidget {
   const TransactionScreen({super.key});
@@ -171,6 +175,7 @@ class _TransaksiMasukTabState extends State<TransaksiMasukTab> {
     setState(() => _isSubmitting = false);
 
     if (result['success']) {
+      AppNotification.success(context, 'Kendaraan berhasil terdaftar masuk');
       _showStrukDialog(result['data']);
       _formKey.currentState?.reset();
       setState(() {
@@ -180,14 +185,12 @@ class _TransaksiMasukTabState extends State<TransaksiMasukTab> {
       });
       // Reload data to refresh area slot counts
       _loadData();
+      RefreshService.instance.refreshDashboard();
+
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(result['message']),
-          backgroundColor: AppColors.error,
-        ),
-      );
+      AppNotification.error(context, result['message']);
     }
+
   }
 
   Future<void> _showStrukDialog(Map<String, dynamic> data) async {
@@ -295,21 +298,13 @@ class _TransaksiMasukTabState extends State<TransaksiMasukTab> {
 
                   if (!mounted) return;
                   Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Struk berhasil dicetak'),
-                      backgroundColor: AppColors.success,
-                    ),
-                  );
+                  AppNotification.success(context, 'Struk berhasil dicetak');
+
                 } catch (e) {
                   if (!mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Gagal mencetak struk: $e'),
-                      backgroundColor: AppColors.error,
-                    ),
-                  );
+                  AppNotification.error(context, 'Gagal mencetak struk: $e');
                 }
+
               },
               icon: const Icon(Icons.print_rounded),
               label: const Text('Cetak Struk'),
@@ -319,13 +314,9 @@ class _TransaksiMasukTabState extends State<TransaksiMasukTab> {
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error menampilkan struk: $e'),
-          backgroundColor: AppColors.error,
-        ),
-      );
+      AppNotification.error(context, 'Error menampilkan struk: $e');
     }
+
   }
 
   Widget _buildStrukRow(String label, String value) {
@@ -513,14 +504,13 @@ class _TransaksiKeluarTabState extends State<TransaksiKeluarTab> {
     if (transaksi.platNomor == null ||
         transaksi.jenisKendaraan == null ||
         transaksi.namaArea == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Data transaksi tidak lengkap. Silakan hubungi admin.'),
-          backgroundColor: AppColors.error,
-        ),
+      AppNotification.error(
+        context,
+        'Data transaksi tidak lengkap. Silakan hubungi admin.',
       );
       return;
     }
+
 
     final now = DateTime.now();
     final duration = now.difference(transaksi.waktuMasuk);
@@ -529,25 +519,17 @@ class _TransaksiKeluarTabState extends State<TransaksiKeluarTab> {
     final tarifResult = await TarifService.getTarifById(transaksi.idTarif);
     if (!tarifResult['success']) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Gagal mengambil data tarif'),
-          backgroundColor: AppColors.error,
-        ),
-      );
+      AppNotification.error(context, 'Gagal mengambil data tarif');
       return;
     }
 
+
     if (tarifResult['data'] == null) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Data tarif tidak ditemukan'),
-          backgroundColor: AppColors.error,
-        ),
-      );
+      AppNotification.error(context, 'Data tarif tidak ditemukan');
       return;
     }
+
 
     final tarif = TarifModel.fromJson(tarifResult['data']);
     
@@ -671,6 +653,7 @@ class _TransaksiKeluarTabState extends State<TransaksiKeluarTab> {
     if (!mounted) return;
 
     if (result['success']) {
+      AppNotification.success(context, 'Pembayaran berhasil diproses');
       // Show payment receipt dialog with print option
       await _showPaymentReceiptDialog(
         transaksi: transaksi,
@@ -682,14 +665,12 @@ class _TransaksiKeluarTabState extends State<TransaksiKeluarTab> {
       );
 
       _loadTransaksi();
+      RefreshService.instance.refreshDashboard();
+
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(result['message']),
-          backgroundColor: AppColors.error,
-        ),
-      );
+      AppNotification.error(context, result['message']);
     }
+
   }
 
   Future<void> _showPaymentReceiptDialog({
@@ -820,23 +801,14 @@ class _TransaksiKeluarTabState extends State<TransaksiKeluarTab> {
                   'Struk_Pembayaran_${transaksi.idParkir}.pdf',
                 );
 
-                if (!mounted) return;
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Struk pembayaran berhasil dicetak'),
-                    backgroundColor: AppColors.success,
-                  ),
-                );
-              } catch (e) {
-                if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Gagal mencetak struk: $e'),
-                    backgroundColor: AppColors.error,
-                  ),
-                );
-              }
+                  if (!mounted) return;
+                  Navigator.pop(context);
+                  AppNotification.success(context, 'Struk pembayaran berhasil dicetak');
+                } catch (e) {
+                  if (!mounted) return;
+                  AppNotification.error(context, 'Gagal mencetak struk: $e');
+                }
+
             },
             icon: const Icon(Icons.print_rounded),
             label: const Text('Cetak Struk'),

@@ -1,10 +1,14 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 import '../../services/api_service.dart';
 import '../../utils/colors.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/error_widget.dart';
+import '../../services/refresh_service.dart';
+
 
 class OwnerDashboardScreen extends StatefulWidget {
   const OwnerDashboardScreen({super.key});
@@ -18,6 +22,8 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
   bool _isLoading = true;
   String? _error;
   String _userName = 'Owner';
+  Timer? _refreshTimer;
+
   
   // Filter waktu
   String _selectedPeriod = 'today'; // today, week, month, custom
@@ -29,7 +35,37 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
     super.initState();
     _loadUserName();
     _loadDashboard();
+    RefreshService.instance.addListener(_onRefreshTriggered);
+    _startPeriodicRefresh();
   }
+
+  void _startPeriodicRefresh() {
+    _refreshTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
+      if (mounted) {
+        _loadDashboard(silent: true);
+      }
+    });
+  }
+
+
+  void _onRefreshTriggered() {
+    if (mounted) {
+      _loadDashboard(silent: false);
+    }
+  }
+
+
+
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    RefreshService.instance.removeListener(_onRefreshTriggered);
+    super.dispose();
+  }
+
+
+
 
   Future<void> _loadUserName() async {
     final user = await AuthService.getUser();
@@ -40,11 +76,12 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
     }
   }
 
-  Future<void> _loadDashboard() async {
+  Future<void> _loadDashboard({bool silent = false}) async {
     setState(() {
-      _isLoading = true;
+      if (!silent) _isLoading = true;
       _error = null;
     });
+
 
     // Tentukan tanggal berdasarkan filter
     DateTime start;

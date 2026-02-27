@@ -4,6 +4,8 @@ class KendaraanModel {
   final String platNomor;
   final String warna;
   final String pemilik;
+  final int idUser;
+
 
   KendaraanModel({
     required this.idKendaraan,
@@ -11,7 +13,9 @@ class KendaraanModel {
     required this.platNomor,
     required this.warna,
     this.pemilik = '',
+    this.idUser = 0,
   });
+
 
   factory KendaraanModel.fromJson(Map<String, dynamic> json) {
     return KendaraanModel(
@@ -20,7 +24,9 @@ class KendaraanModel {
       platNomor: json['plat_nomor'] ?? '',
       warna: json['warna'] ?? '',
       pemilik: json['pemilik'] ?? '',
+      idUser: json['id_user'] ?? 0,
     );
+
   }
 
   Map<String, dynamic> toJson() {
@@ -30,7 +36,9 @@ class KendaraanModel {
       'plat_nomor': platNomor,
       'warna': warna,
       'pemilik': pemilik,
+      'id_user': idUser,
     };
+
   }
 
   String get displayName => '$jenisKendaraan - $platNomor';

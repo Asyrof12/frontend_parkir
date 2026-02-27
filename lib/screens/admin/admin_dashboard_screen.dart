@@ -1,10 +1,14 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 import '../../utils/colors.dart';
 import '../../services/api_service.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/error_widget.dart';
+import '../../services/refresh_service.dart';
+
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -18,13 +22,44 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   bool _isLoading = true;
   String? _error;
   String _userName = 'Admin';
+  Timer? _refreshTimer;
+
 
   @override
   void initState() {
     super.initState();
     _loadUserName();
     _loadDashboard();
+    RefreshService.instance.addListener(_onRefreshTriggered);
+    _startPeriodicRefresh();
   }
+
+  void _startPeriodicRefresh() {
+    _refreshTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
+      if (mounted) {
+        _loadDashboard(silent: true);
+      }
+    });
+  }
+
+
+  void _onRefreshTriggered() {
+    if (mounted) {
+      _loadDashboard(silent: false);
+    }
+  }
+
+
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    RefreshService.instance.removeListener(_onRefreshTriggered);
+    super.dispose();
+  }
+
+
+
 
   Future<void> _loadUserName() async {
     final user = await AuthService.getUser();
@@ -35,11 +70,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     }
   }
 
-  Future<void> _loadDashboard() async {
+  Future<void> _loadDashboard({bool silent = false}) async {
     setState(() {
-      _isLoading = true;
+      if (!silent) _isLoading = true;
       _error = null;
     });
+
 
     final result = await AdminService.getDashboardAdmin();
 

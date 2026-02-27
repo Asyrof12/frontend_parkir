@@ -6,6 +6,10 @@ import '../../widgets/loading_widget.dart';
 import '../../widgets/error_widget.dart';
 import '../../widgets/empty_state_widget.dart';
 import '../../utils/form_validators.dart';
+import '../../utils/notifications.dart';
+import '../../services/refresh_service.dart';
+
+
 
 class UserManagementScreen extends StatefulWidget {
   const UserManagementScreen({super.key});
@@ -23,7 +27,19 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   void initState() {
     super.initState();
     _loadUsers();
+    RefreshService.instance.addListener(_onRefreshTriggered);
   }
+
+  void _onRefreshTriggered() {
+    _loadUsers();
+  }
+
+  @override
+  void dispose() {
+    RefreshService.instance.removeListener(_onRefreshTriggered);
+    super.dispose();
+  }
+
 
   Future<void> _loadUsers() async {
     setState(() {
@@ -85,18 +101,14 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     if (!mounted) return;
 
     if (result['success']) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('User berhasil dihapus')));
+      AppNotification.success(context, 'User berhasil dihapus');
       _loadUsers();
+      RefreshService.instance.refreshDashboard();
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(result['message']),
-          backgroundColor: AppColors.error,
-        ),
-      );
+
+      AppNotification.error(context, result['message']);
     }
+
   }
 
   void _showUserForm([UserModel? user]) {
@@ -316,24 +328,17 @@ class _UserFormDialogState extends State<UserFormDialog> {
 
     if (result['success']) {
       Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            widget.user == null
-                ? 'User berhasil ditambahkan'
-                : 'User berhasil diupdate',
-          ),
-        ),
+      AppNotification.success(
+        context,
+        widget.user == null ? 'User berhasil ditambahkan' : 'User berhasil diupdate',
       );
       widget.onSaved();
+      RefreshService.instance.refreshDashboard();
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(result['message']),
-          backgroundColor: AppColors.error,
-        ),
-      );
+
+      AppNotification.error(context, result['message']);
     }
+
   }
 
   @override

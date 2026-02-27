@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../services/api_service.dart';
 import '../../utils/colors.dart';
+import '../../utils/notifications.dart';
 import '../main_shell.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -12,6 +13,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -32,20 +34,17 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = false);
 
     if (result['success']) {
+      AppNotification.success(context, 'Login berhasil. Selamat datang!');
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) => const MainShell()),
         (route) => false,
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(result['message']),
-          backgroundColor: AppColors.error,
-        ),
-      );
+      AppNotification.error(context, result['message']);
     }
   }
+
 
   @override
   Widget build(BuildContext context) {

@@ -6,6 +6,10 @@ import '../../widgets/loading_widget.dart';
 import '../../widgets/error_widget.dart';
 import '../../widgets/empty_state_widget.dart';
 import '../../utils/form_validators.dart';
+import '../../utils/notifications.dart';
+import '../../services/refresh_service.dart';
+
+
 
 class AreaManagementScreen extends StatefulWidget {
   const AreaManagementScreen({super.key});
@@ -23,7 +27,19 @@ class _AreaManagementScreenState extends State<AreaManagementScreen> {
   void initState() {
     super.initState();
     _loadAreas();
+    RefreshService.instance.addListener(_onRefreshTriggered);
   }
+
+  void _onRefreshTriggered() {
+    _loadAreas();
+  }
+
+  @override
+  void dispose() {
+    RefreshService.instance.removeListener(_onRefreshTriggered);
+    super.dispose();
+  }
+
 
   Future<void> _loadAreas() async {
     setState(() {
@@ -96,18 +112,14 @@ class _AreaManagementScreenState extends State<AreaManagementScreen> {
     if (!mounted) return;
 
     if (result['success']) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Area berhasil dihapus')));
+      AppNotification.success(context, 'Area berhasil dihapus');
       _loadAreas();
+      RefreshService.instance.refreshDashboard();
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(result['message']),
-          backgroundColor: AppColors.error,
-        ),
-      );
+
+      AppNotification.error(context, result['message']);
     }
+
   }
 
   void _showAreaForm([AreaModel? area]) {
@@ -269,24 +281,17 @@ class _AreaFormDialogState extends State<AreaFormDialog> {
 
     if (result['success']) {
       Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            widget.area == null
-                ? 'Area berhasil ditambahkan'
-                : 'Area berhasil diupdate',
-          ),
-        ),
+      AppNotification.success(
+        context,
+        widget.area == null ? 'Area berhasil ditambahkan' : 'Area berhasil diupdate',
       );
       widget.onSaved();
+      RefreshService.instance.refreshDashboard();
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(result['message']),
-          backgroundColor: AppColors.error,
-        ),
-      );
+
+      AppNotification.error(context, result['message']);
     }
+
   }
 
   @override
