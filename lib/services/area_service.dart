@@ -63,11 +63,15 @@ class AreaService {
   }
 
   /// Delete area
-  static Future<Map<String, dynamic>> deleteArea(int id) async {
+  static Future<Map<String, dynamic>> deleteArea(int id, {bool force = false}) async {
     try {
       final headers = await ApiConfig.getHeaders();
+      final url = force 
+          ? '${ApiConfig.baseUrl}/area/$id?force=true' 
+          : '${ApiConfig.baseUrl}/area/$id';
+          
       final response = await http.delete(
-        Uri.parse('${ApiConfig.baseUrl}/area/$id'),
+        Uri.parse(url),
         headers: headers,
       );
       return ApiConfig.handleResponse(response);

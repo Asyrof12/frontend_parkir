@@ -116,10 +116,47 @@ class _AreaManagementScreenState extends State<AreaManagementScreen> {
       _loadAreas();
       RefreshService.instance.refreshDashboard();
     } else {
+      // ✅ Jika area memiliki history, tawarkan force delete
+      if (result['hasHistory'] == true) {
+        final forceConfirm = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Area Memiliki Riwayat'),
+            content: Text(
+              'Area "$name" tidak bisa dihapus langsung karena memiliki riwayat transaksi.\n\n'
+              'Jika Anda memaksa hapus, seluruh riwayat transaksi di area ini akan ikut terhapus secara permanen. Lanjutkan?',
+              style: const TextStyle(color: Colors.red),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Batal'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                child: const Text('Ya, Paksa Hapus Semuanya'),
+              ),
+            ],
+          ),
+        );
 
-      AppNotification.error(context, result['message']);
+        if (forceConfirm == true) {
+          final forceResult = await AreaService.deleteArea(id, force: true);
+          if (!mounted) return;
+          
+          if (forceResult['success']) {
+            AppNotification.success(context, 'Area dan riwayat berhasil dihapus');
+            _loadAreas();
+            RefreshService.instance.refreshDashboard();
+          } else {
+            AppNotification.error(context, forceResult['message']);
+          }
+        }
+      } else {
+        AppNotification.error(context, result['message']);
+      }
     }
-
   }
 
   void _showAreaForm([AreaModel? area]) {

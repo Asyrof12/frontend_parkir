@@ -29,13 +29,12 @@ class ApiConfig {
     final data = jsonDecode(response.body);
     
     if (response.statusCode >= 200 && response.statusCode < 300) {
-      // Backend already returns {success: true, data: ...}
-      // So we just return it directly without wrapping again
       return data;
     } else {
+      // Merge success: false with the original data to preserve extra flags like hasHistory
       return {
         'success': false,
-        'message': data['message'] ?? 'Terjadi kesalahan',
+        ...data,
       };
     }
   }
