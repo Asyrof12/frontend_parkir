@@ -1,5 +1,8 @@
-// Export semua service untuk kemudahan import
-// Sekarang bisa import dengan: import 'package:frontend_ukk/services/api_service.dart';
+/**
+ * Index Service API
+ * Mengekspor semua service agar dapat diakses melalui satu file tunggal.
+ */
+// export 'api_config.dart';
 
 export 'api_config.dart';
 export 'auth_service.dart';

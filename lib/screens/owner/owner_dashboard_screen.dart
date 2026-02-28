@@ -8,6 +8,7 @@ import '../../utils/colors.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/error_widget.dart';
 import '../../services/refresh_service.dart';
+import '../../services/struk_service.dart';
 
 
 class OwnerDashboardScreen extends StatefulWidget {
@@ -633,17 +634,29 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
                     ),
                   ),
                   if (transaction['biaya_total'] != null)
-                    Text(
-                      NumberFormat.currency(
-                        locale: 'id_ID',
-                        symbol: 'Rp',
-                        decimalDigits: 0,
-                      ).format(num.tryParse(transaction['biaya_total']?.toString() ?? '0') ?? 0),
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.success,
-                      ),
+                    Row(
+                      children: [
+                        Text(
+                          NumberFormat.currency(
+                            locale: 'id_ID',
+                            symbol: 'Rp',
+                            decimalDigits: 0,
+                          ).format(num.tryParse(transaction['biaya_total']?.toString() ?? '0') ?? 0),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.success,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        IconButton(
+                          icon: const Icon(Icons.print_outlined, size: 18, color: AppColors.textSecondary),
+                          onPressed: () => _printIndividualReceipt(transaction),
+                          tooltip: 'Cetak Struk',
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
+                      ],
                     ),
                 ],
               ),
@@ -703,5 +716,42 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
         ).animate().fade(delay: (100 * index).ms).slideX(begin: 0.1);
       },
     );
+  }
+
+  Future<void> _printIndividualReceipt(Map<String, dynamic> transaction) async {
+    try {
+      final user = await AuthService.getUser();
+      final namaPetugas = user?['nama_lengkap'] ?? 'Petugas';
+      
+      final waktuMasuk = DateTime.tryParse(transaction['waktu_masuk'] ?? '') ?? DateTime.now();
+      final waktuKeluar = transaction['waktu_keluar'] != null
+          ? DateTime.tryParse(transaction['waktu_keluar'])
+          : DateTime.now();
+          
+      final duration = waktuKeluar!.difference(waktuMasuk);
+      int durasiJam = (duration.inMinutes / 60).ceil();
+      if (durasiJam < 1) durasiJam = 1;
+
+      final pdf = await StrukService.generateStrukKeluar(
+        idParkir: transaction['id_parkir'] as int,
+        platNomor: transaction['plat_nomor'] ?? '-',
+        jenisKendaraan: transaction['jenis_kendaraan'] ?? '-',
+        namaArea: transaction['nama_area'] ?? '-',
+        tarifAwal: 'Rp -',
+        tarifNambah: 'Rp -',
+        waktuMasuk: waktuMasuk,
+        waktuKeluar: waktuKeluar,
+        durasiJam: durasiJam,
+        biayaTotal: num.tryParse(transaction['biaya_total']?.toString() ?? '0')?.toInt() ?? 0,
+        namaPetugas: namaPetugas,
+      );
+
+      await StrukService.printStruk(pdf, 'Struk_${transaction['id_parkir']}.pdf');
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal mencetak struk: $e')),
+      );
+    }
   }
 }

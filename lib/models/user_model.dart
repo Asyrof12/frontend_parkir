@@ -1,3 +1,7 @@
+/**
+ * Model Data User
+ * Digunakan untuk mapping data profil user dari API ke objek Dart.
+ */
 class UserModel {
   final int idUser;
   final String namaLengkap;

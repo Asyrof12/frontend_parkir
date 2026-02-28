@@ -5,6 +5,8 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import '../../models/transaksi_model.dart';
 import '../../services/owner_service.dart';
+import '../../services/struk_service.dart';
+import '../../services/auth_service.dart';
 import '../../utils/colors.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/error_widget.dart';
@@ -119,9 +121,9 @@ class _OwnerHistoryScreenState extends State<OwnerHistoryScreen> {
         title: const Text('Rekap Transaksi'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.print_rounded),
+            icon: const Icon(Icons.picture_as_pdf_outlined),
             onPressed: _transactions.isEmpty ? null : _generatePdf,
-            tooltip: 'Cetak PDF',
+            tooltip: 'Download Laporan A4',
           ),
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
@@ -146,17 +148,17 @@ class _OwnerHistoryScreenState extends State<OwnerHistoryScreen> {
                         : SingleChildScrollView(
                             padding: const EdgeInsets.all(16),
                             child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _buildSummaryStats(),
-                                const SizedBox(height: 24),
-                                _buildBreakdowns(),
-                                const SizedBox(height: 32),
-                                _buildTransactionListHeader(),
-                                const SizedBox(height: 12),
-                                _buildTransactionList(),
-                              ],
-                            ),
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _buildSummaryStats(),
+                                  const SizedBox(height: 24),
+                                  _buildBreakdowns(),
+                                  const SizedBox(height: 32),
+                                  _buildTransactionListHeader(),
+                                  const SizedBox(height: 12),
+                                  _buildTransactionList(),
+                                ],
+                              ),
                           ),
           ),
         ],
@@ -437,11 +439,53 @@ class _OwnerHistoryScreenState extends State<OwnerHistoryScreen> {
                   ),
                 ],
               ),
+              const SizedBox(width: 12),
+              IconButton(
+                icon: const Icon(Icons.print_outlined, size: 20, color: AppColors.textSecondary),
+                onPressed: () => _printIndividualReceipt(t),
+                tooltip: 'Cetak Struk',
+              ),
             ],
           ),
         );
       },
     );
+  }
+
+  Future<void> _printIndividualReceipt(TransaksiModel t) async {
+    try {
+      // Get user info for petugas name
+      final user = await AuthService.getUser();
+      final namaPetugas = user?['nama_lengkap'] ?? 'Petugas';
+      
+      // Hitung durasi dan jam tambahan untuk struk
+      final duration = (t.waktuKeluar ?? DateTime.now()).difference(t.waktuMasuk);
+      int durasiMenit = duration.inMinutes;
+      int durasiJam = (durasiMenit / 60).ceil();
+      if (durasiJam < 1) durasiJam = 1;
+      int jamTambahan = durasiJam - 1;
+
+      final pdf = await StrukService.generateStrukKeluar(
+        idParkir: t.idParkir,
+        platNomor: t.platNomor ?? '-',
+        jenisKendaraan: t.jenisKendaraan ?? '-',
+        namaArea: t.namaArea ?? '-',
+        tarifAwal: 'Rp -', // Info tarif tidak ada di rekap, pakai '-' 
+        tarifNambah: 'Rp -',
+        waktuMasuk: t.waktuMasuk,
+        waktuKeluar: t.waktuKeluar ?? DateTime.now(),
+        durasiJam: durasiJam,
+        biayaTotal: t.biayaTotal ?? 0,
+        namaPetugas: namaPetugas,
+      );
+
+      await StrukService.printStruk(pdf, 'Struk_${t.idParkir}.pdf');
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal mencetak struk: $e')),
+      );
+    }
   }
 
   Future<void> _generatePdf() async {
@@ -450,6 +494,7 @@ class _OwnerHistoryScreenState extends State<OwnerHistoryScreen> {
 
     doc.addPage(
       pw.MultiPage(
+        pageFormat: PdfPageFormat.a4, // Kunci ke format A4
         build: (context) => [
           pw.Header(
             level: 0,
@@ -501,15 +546,17 @@ class _OwnerHistoryScreenState extends State<OwnerHistoryScreen> {
       ),
     );
 
+    // Langsung panggil layoutPdf tanpa print preview yang ribet
     await Printing.layoutPdf(
       onLayout: (PdfPageFormat format) async => doc.save(),
       name: 'Rekap_Parkir_${DateFormat('yyyyMMdd').format(_startDate)}.pdf',
+      format: PdfPageFormat.a4,
     );
   }
 
   pw.Widget _buildPdfRow(String label, String value) {
     return pw.Padding(
-      padding: const pw.EdgeInsets.symmetric(vertical: 2),
+      padding: pw.EdgeInsets.symmetric(vertical: 2.0),
       child: pw.Row(
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         children: [

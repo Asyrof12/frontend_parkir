@@ -2,7 +2,11 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Konfigurasi dasar untuk semua API service
+/**
+ * Konfigurasi API Pusat
+ * Mengatur Base URL, header autentikasi, dan pengelolaan token JWT 
+ * menggunakan SharedPreferences.
+ */
 class ApiConfig {
   // URL ngrok untuk production/testing
   static const String baseUrl = 'https://dishonestly-nondistracted-vania.ngrok-free.dev/api';
@@ -70,3 +74,4 @@ class ApiConfig {
     await prefs.clear();
   }
 }
+

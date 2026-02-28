@@ -239,6 +239,7 @@ class StrukService {
     await Printing.layoutPdf(
       onLayout: (format) async => pdf.save(),
       name: title,
+      format: PdfPageFormat.roll80,
     );
   }
 

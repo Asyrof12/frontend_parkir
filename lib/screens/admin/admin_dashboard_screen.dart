@@ -10,6 +10,11 @@ import '../../widgets/error_widget.dart';
 import '../../services/refresh_service.dart';
 
 
+/**
+ * Dashboard Admin
+ * Menampilkan ringkasan data sistem (Users, Area, Kendaraan, Tarif)
+ * serta log aktivitas terbaru secara realtime atau terjadwal.
+ */
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
 

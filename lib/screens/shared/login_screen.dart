@@ -5,6 +5,11 @@ import '../../utils/colors.dart';
 import '../../utils/notifications.dart';
 import '../main_shell.dart';
 
+/**
+ * Halaman Login
+ * Tempat user memasukkan username dan password untuk masuk ke sistem.
+ * Dilengkapi dengan validasi form dan animasi.
+ */
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 

@@ -2,7 +2,10 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'api_config.dart';
 
-/// Service untuk authentication (login, logout)
+/**
+ * Layanan Autentikasi
+ * Menangani proses Login dan Logout serta komunikasi dengan API auth.
+ */
 class AuthService {
   /// Login dengan username dan password
   static Future<Map<String, dynamic>> login(String username, String password) async {

@@ -1,3 +1,8 @@
+/**
+ * Model Data Transaksi Parkir
+ * Menangani mapping data riwayat parkir, termasuk informasi JOIN dari
+ * kendaraan, area, dan tarif.
+ */
 class TransaksiModel {
   final int idParkir;
   final int idKendaraan;

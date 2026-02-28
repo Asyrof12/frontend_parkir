@@ -212,6 +212,25 @@ class _TransaksiMasukTabState extends State<TransaksiMasukTab> {
       final user = await AuthService.getUser();
       final namaPetugas = user?['nama_lengkap'] ?? 'Petugas';
 
+      // CETAK OTOMATIS: Langsung panggil fungsi print tanpa nunggu klik tombol
+      try {
+        final pdf = await StrukService.generateStrukMasuk(
+          idParkir: data['id_parkir'],
+          platNomor: kendaraan.platNomor,
+          jenisKendaraan: kendaraan.jenisKendaraan,
+          namaArea: area.namaArea,
+          tarifPerJam: '${tarif.formattedTarif}/jam',
+          waktuMasuk: DateTime.now(),
+          namaPetugas: namaPetugas,
+        );
+        await StrukService.printStruk(
+          pdf,
+          'Struk_Masuk_${data['id_parkir']}.pdf',
+        );
+      } catch (e) {
+        print('Gagal cetak otomatis: $e');
+      }
+
       if (!mounted) return;
 
       showDialog(
@@ -307,7 +326,7 @@ class _TransaksiMasukTabState extends State<TransaksiMasukTab> {
 
               },
               icon: const Icon(Icons.print_rounded),
-              label: const Text('Cetak Struk'),
+              label: const Text('Cetak Ulang'),
             ),
           ],
         ),
@@ -683,6 +702,29 @@ class _TransaksiKeluarTabState extends State<TransaksiKeluarTab> {
   }) async {
     final int jamTambahan = durasiJam - 1 > 0 ? durasiJam - 1 : 0;
     
+    // CETAK OTOMATIS: Langsung panggil fungsi print tanpa nunggu klik tombol
+    try {
+      final pdf = await StrukService.generateStrukKeluar(
+        idParkir: transaksi.idParkir,
+        platNomor: transaksi.platNomor ?? '-',
+        jenisKendaraan: transaksi.jenisKendaraan ?? '-',
+        namaArea: transaksi.namaArea ?? '-',
+        tarifAwal: 'Rp ${tarif.tarifPerJam}',
+        tarifNambah: 'Rp ${jamTambahan * tarif.tarifNambah}',
+        waktuMasuk: transaksi.waktuMasuk,
+        waktuKeluar: waktuKeluar,
+        durasiJam: durasiJam,
+        biayaTotal: biayaTotal,
+        namaPetugas: namaPetugas,
+      );
+      await StrukService.printStruk(
+        pdf,
+        'Struk_Pembayaran_${transaksi.idParkir}.pdf',
+      );
+    } catch (e) {
+      print('Gagal cetak otomatis: $e');
+    }
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -811,7 +853,7 @@ class _TransaksiKeluarTabState extends State<TransaksiKeluarTab> {
 
             },
             icon: const Icon(Icons.print_rounded),
-            label: const Text('Cetak Struk'),
+            label: const Text('Cetak Ulang'),
           ),
         ],
       ),

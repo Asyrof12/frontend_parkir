@@ -24,6 +24,13 @@ import 'petugas/petugas_history_screen.dart';
 import 'owner/owner_dashboard_screen.dart';
 import 'owner/owner_history_screen.dart';
 
+/**
+ * Cangkang Utama Aplikasi (Navigation Shell)
+ * Menampilkan Bottom Navigation Bar yang berbeda-beda tergantung peran 
+ * (Role) user yang sedang login (Admin, Petugas, atau Owner).
+ */
+
+
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
 

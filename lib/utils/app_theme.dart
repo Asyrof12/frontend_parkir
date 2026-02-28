@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'colors.dart';
 
+/**
+ * Pengaturan Tema Aplikasi
+ * Mendefinisikan warna, tipografi, dan gaya komponen (tombol, input) 
+ * secara global menggunakan Material 3.
+ */
 class AppTheme {
   static ThemeData get lightTheme {
     return ThemeData(

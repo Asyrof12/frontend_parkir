@@ -1,5 +1,10 @@
 import 'package:intl/intl.dart';
 
+/**
+ * Format Tanggal & Mata Uang
+ * Utility untuk mengubah objek DateTime menjadi string yang mudah dibaca
+ * dalam format Indonesia (id_ID).
+ */
 class DateFormatter {
   static String formatDate(DateTime date) {
     return DateFormat('dd MMM yyyy', 'id_ID').format(date);
