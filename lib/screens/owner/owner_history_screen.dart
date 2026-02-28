@@ -533,12 +533,13 @@ class _OwnerHistoryScreenState extends State<OwnerHistoryScreen> {
           // Table
           pw.TableHelper.fromTextArray(
             headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-            headers: ['Waktu', 'Plat Nomor', 'Jenis', 'Area', 'Biaya'],
+            headers: ['Tanggal', 'Masuk', 'Keluar', 'Plat', 'Jenis', 'Biaya'],
             data: _transactions.map((t) => [
-              DateFormat('dd/MM HH:mm').format(t.waktuKeluar!),
+              DateFormat('dd/MM/yy').format(t.waktuKeluar ?? t.waktuMasuk),
+              DateFormat('HH:mm').format(t.waktuMasuk),
+              t.waktuKeluar != null ? DateFormat('HH:mm').format(t.waktuKeluar!) : '-',
               t.platNomor ?? 'N/A',
               t.jenisKendaraan ?? '-',
-              t.namaArea ?? '-',
               fmt.format(t.biayaTotal ?? 0),
             ]).toList(),
           ),

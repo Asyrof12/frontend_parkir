@@ -55,8 +55,7 @@ class StrukService {
               pw.Divider(),
               
               // Waktu
-              _buildRow('Waktu Masuk', DateFormat('dd MMM yyyy').format(waktuMasuk)),
-              _buildRow('Jam', DateFormat('HH:mm:ss').format(waktuMasuk)),
+              _buildRow('Waktu Masuk', DateFormat('dd/MM/yyyy HH:mm').format(waktuMasuk)),
               pw.Divider(),
               
               // Petugas
@@ -143,8 +142,8 @@ class StrukService {
               pw.Divider(),
               
               // Waktu
-              _buildRow('Masuk', DateFormat('dd/MM HH:mm').format(waktuMasuk)),
-              _buildRow('Keluar', DateFormat('dd/MM HH:mm').format(waktuKeluar)),
+              _buildRow('Masuk', DateFormat('dd/MM/yyyy HH:mm').format(waktuMasuk)),
+              _buildRow('Keluar', DateFormat('dd/MM/yyyy HH:mm').format(waktuKeluar)),
               _buildRow('Durasi', '$durasiJam jam'),
               pw.Divider(),
               
