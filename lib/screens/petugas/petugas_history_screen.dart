@@ -6,6 +6,7 @@ import '../../utils/colors.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/error_widget.dart';
 import '../../widgets/empty_state_widget.dart';
+import '../../services/refresh_service.dart';
 
 class PetugasHistoryScreen extends StatefulWidget {
   const PetugasHistoryScreen({super.key});
@@ -24,6 +25,25 @@ class _PetugasHistoryScreenState extends State<PetugasHistoryScreen> {
   void initState() {
     super.initState();
     _loadHistory();
+    RefreshService.instance.addListener(_onRefreshTriggered);
+  }
+
+  void _onRefreshTriggered() {
+    if (mounted) {
+      // Tunggu frame build selesai agar tab sudah aktif sebelum refresh
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (mounted) {
+          print('🔄 PetugasHistoryScreen refreshing from trigger');
+          _loadHistory();
+        }
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    RefreshService.instance.removeListener(_onRefreshTriggered);
+    super.dispose();
   }
 
   Future<void> _loadHistory() async {

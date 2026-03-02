@@ -13,10 +13,10 @@ class AreaModel {
 
   factory AreaModel.fromJson(Map<String, dynamic> json) {
     return AreaModel(
-      idArea: json['id_area'] ?? 0,
-      namaArea: json['nama_area'] ?? '',
-      kapasitas: json['kapasitas'] ?? 0,
-      terisi: json['terisi'] ?? 0,
+      idArea: int.tryParse(json['id_area']?.toString() ?? '0') ?? 0,
+      namaArea: json['nama_area']?.toString() ?? '',
+      kapasitas: int.tryParse(json['kapasitas']?.toString() ?? '0') ?? 0,
+      terisi: int.tryParse(json['terisi']?.toString() ?? '0') ?? 0,
     );
   }
 

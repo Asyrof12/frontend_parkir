@@ -153,9 +153,10 @@ class _MainShellState extends State<MainShell> {
     return GestureDetector(
       onTap: () {
         setState(() => _selectedIndex = index);
-        // Trigger refresh otomatis untuk semua halaman
-        RefreshService.instance.refreshDashboard();
-
+        // Trigger refresh otomatis untuk semua halaman setelah tab benar-benar berpindah
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          RefreshService.instance.refreshDashboard();
+        });
       },
 
       behavior: HitTestBehavior.opaque,

@@ -42,11 +42,11 @@ class TransaksiModel {
 
   factory TransaksiModel.fromJson(Map<String, dynamic> json) {
     return TransaksiModel(
-      idParkir: json['id_parkir'] ?? 0,
-      idKendaraan: json['id_kendaraan'] ?? 0,
-      idTarif: json['id_tarif'] ?? 0,
-      idArea: json['id_area'] ?? 0,
-      idUser: json['id_user'] ?? 0,
+      idParkir: int.tryParse(json['id_parkir']?.toString() ?? '0') ?? 0,
+      idKendaraan: int.tryParse(json['id_kendaraan']?.toString() ?? '0') ?? 0,
+      idTarif: int.tryParse(json['id_tarif']?.toString() ?? '0') ?? 0,
+      idArea: int.tryParse(json['id_area']?.toString() ?? '0') ?? 0,
+      idUser: int.tryParse(json['id_user']?.toString() ?? '0') ?? 0,
       waktuMasuk: DateTime.tryParse(json['waktu_masuk']?.toString() ?? '')?.toLocal() ?? DateTime.now(),
       waktuKeluar: json['waktu_keluar'] != null 
           ? DateTime.tryParse(json['waktu_keluar'].toString())?.toLocal()
@@ -57,11 +57,11 @@ class TransaksiModel {
       biayaTotal: json['biaya_total'] != null 
           ? int.tryParse(json['biaya_total'].toString()) 
           : null,
-      status: json['status'] ?? 'masuk',
-      platNomor: json['plat_nomor'],
-      jenisKendaraan: json['jenis_kendaraan'],
-      namaArea: json['nama_area'],
-      namaPetugas: json['nama_petugas'] ?? json['petugas_nama'],
+      status: json['status']?.toString() ?? 'masuk',
+      platNomor: json['plat_nomor']?.toString(),
+      jenisKendaraan: json['jenis_kendaraan']?.toString(),
+      namaArea: json['nama_area']?.toString(),
+      namaPetugas: (json['nama_petugas'] ?? json['petugas_nama'])?.toString(),
       tarifNambah: json['tarif_nambah'] != null 
           ? int.tryParse(json['tarif_nambah'].toString()) 
           : null,
