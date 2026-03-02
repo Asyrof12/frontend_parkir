@@ -99,6 +99,7 @@ class StrukService {
     required int durasiJam,
     required int biayaTotal,
     required String namaPetugas,
+    bool isGratis = false,
   }) async {
     final pdf = pw.Document();
 
@@ -148,39 +149,76 @@ class StrukService {
               pw.Divider(),
               
               // Biaya
-              _buildRow('Tarif Awal', tarifAwal),
-              if (jamTambahan > 0) 
-                _buildRow('Nambah ($jamTambahan jam)', tarifNambah),
-              pw.SizedBox(height: 8),
-              pw.Container(
-                padding: const pw.EdgeInsets.all(8),
-                decoration: pw.BoxDecoration(
-                  border: pw.Border.all(width: 2),
-                ),
-                child: pw.Row(
-                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                  children: [
-                    pw.Text(
-                      'TOTAL BAYAR',
-                      style: pw.TextStyle(
-                        fontSize: 14,
-                        fontWeight: pw.FontWeight.bold,
-                      ),
+              if (isGratis) ...
+                [
+                  pw.SizedBox(height: 8),
+                  pw.Container(
+                    padding: const pw.EdgeInsets.all(8),
+                    decoration: pw.BoxDecoration(
+                      border: pw.Border.all(width: 2),
                     ),
-                    pw.Text(
-                      NumberFormat.currency(
-                        locale: 'id_ID',
-                        symbol: 'Rp',
-                        decimalDigits: 0,
-                      ).format(biayaTotal),
-                      style: pw.TextStyle(
-                        fontSize: 14,
-                        fontWeight: pw.FontWeight.bold,
-                      ),
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.center,
+                      children: [
+                        pw.Text(
+                          'PARKIR GRATIS',
+                          style: pw.TextStyle(
+                            fontSize: 16,
+                            fontWeight: pw.FontWeight.bold,
+                          ),
+                        ),
+                        pw.Text(
+                          'Durasi < 5 Menit',
+                          style: pw.TextStyle(fontSize: 11),
+                        ),
+                        pw.SizedBox(height: 4),
+                        pw.Text(
+                          'Rp 0',
+                          style: pw.TextStyle(
+                            fontSize: 14,
+                            fontWeight: pw.FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
+                  ),
+                ]
+              else ...
+                [
+                  _buildRow('Tarif Awal', tarifAwal),
+                  if (jamTambahan > 0)
+                    _buildRow('Nambah ($jamTambahan jam)', tarifNambah),
+                  pw.SizedBox(height: 8),
+                  pw.Container(
+                    padding: const pw.EdgeInsets.all(8),
+                    decoration: pw.BoxDecoration(
+                      border: pw.Border.all(width: 2),
+                    ),
+                    child: pw.Row(
+                      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                      children: [
+                        pw.Text(
+                          'TOTAL BAYAR',
+                          style: pw.TextStyle(
+                            fontSize: 14,
+                            fontWeight: pw.FontWeight.bold,
+                          ),
+                        ),
+                        pw.Text(
+                          NumberFormat.currency(
+                            locale: 'id_ID',
+                            symbol: 'Rp',
+                            decimalDigits: 0,
+                          ).format(biayaTotal),
+                          style: pw.TextStyle(
+                            fontSize: 14,
+                            fontWeight: pw.FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               pw.SizedBox(height: 12),
               pw.Divider(),
               

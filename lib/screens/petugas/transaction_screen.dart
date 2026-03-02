@@ -76,9 +76,13 @@ class _TransaksiMasukTabState extends State<TransaksiMasukTab> {
   List<TarifModel> _tarifList = [];
   List<AreaModel> _areaList = [];
 
+  // Mode input (Unified: bisa pilih atau ketik)
   int? _selectedKendaraan;
+  KendaraanModel? _selectedKendaraanObj;
   int? _selectedTarif;
   int? _selectedArea;
+
+  final TextEditingController _kendaraanInputController = TextEditingController();
 
   bool _isLoading = true;
   bool _isSubmitting = false;
@@ -88,6 +92,12 @@ class _TransaksiMasukTabState extends State<TransaksiMasukTab> {
   void initState() {
     super.initState();
     _loadData();
+  }
+
+  @override
+  void dispose() {
+    _kendaraanInputController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadData() async {
@@ -162,11 +172,30 @@ class _TransaksiMasukTabState extends State<TransaksiMasukTab> {
 
     setState(() => _isSubmitting = true);
 
-    final data = {
-      'id_kendaraan': _selectedKendaraan,
-      'id_tarif': _selectedTarif,
-      'id_area': _selectedArea,
-    };
+    final Map<String, dynamic> data;
+    
+    // Cari tarif yang dipilih untuk ambil jenis kendaraannya
+    final selectedTarifObj = _tarifList.firstWhere(
+      (t) => t.idTarif == _selectedTarif,
+      orElse: () => _tarifList.isNotEmpty ? _tarifList.first : TarifModel(idTarif: 0, jenisKendaraan: 'Tidak Diketahui', tarifPerJam: 0, tarifNambah: 0),
+    );
+
+    if (_selectedKendaraan != null) {
+      // Jika memilih dari daftar
+      data = {
+        'id_kendaraan': _selectedKendaraan,
+        'id_tarif': _selectedTarif,
+        'id_area': _selectedArea,
+      };
+    } else {
+      // Jika input manual (ketik sendiri)
+      data = {
+        'plat_nomor': _kendaraanInputController.text.trim().toUpperCase(),
+        'jenis_kendaraan': selectedTarifObj.jenisKendaraan,
+        'id_tarif': _selectedTarif,
+        'id_area': _selectedArea,
+      };
+    }
 
     final result = await TransaksiService.transaksiMasuk(data);
 
@@ -176,29 +205,52 @@ class _TransaksiMasukTabState extends State<TransaksiMasukTab> {
 
     if (result['success']) {
       AppNotification.success(context, 'Kendaraan berhasil terdaftar masuk');
-      _showStrukDialog(result['data']);
+      
+      // Update local state for receipt display
+      final dynamic receiptData = result['data'];
+      _showStrukDialog(receiptData is Map<String, dynamic> ? receiptData : {});
+      
       _formKey.currentState?.reset();
       setState(() {
         _selectedKendaraan = null;
+        _selectedKendaraanObj = null;
+        _kendaraanInputController.clear();
         _selectedTarif = null;
         _selectedArea = null;
       });
-      // Reload data to refresh area slot counts
       _loadData();
       RefreshService.instance.refreshDashboard();
-
     } else {
       AppNotification.error(context, result['message']);
     }
-
   }
 
   Future<void> _showStrukDialog(Map<String, dynamic> data) async {
     try {
-      final kendaraan = _kendaraanList.firstWhere(
-        (k) => k.idKendaraan == _selectedKendaraan,
-        orElse: () => throw Exception('Kendaraan tidak ditemukan'),
-      );
+      // Coba ambil dari list; jika manual (tidak ada id_kendaraan di state), buat objek sementara
+      final KendaraanModel kendaraan;
+      if (_selectedKendaraan != null) {
+        kendaraan = _kendaraanList.firstWhere(
+          (k) => k.idKendaraan == _selectedKendaraan,
+          orElse: () => KendaraanModel(
+            idKendaraan: data['id_kendaraan'] ?? 0,
+            platNomor: '-',
+            jenisKendaraan: '-',
+            warna: '-',
+          ),
+        );
+      } else {
+        final tarif = _tarifList.firstWhere(
+          (t) => t.idTarif == _selectedTarif,
+          orElse: () => TarifModel(idTarif: 0, jenisKendaraan: 'Manual', tarifPerJam: 0, tarifNambah: 0),
+        );
+        kendaraan = KendaraanModel(
+          idKendaraan: data['id_kendaraan'] ?? 0,
+          platNomor: _kendaraanInputController.text.trim().toUpperCase(),
+          jenisKendaraan: tarif.jenisKendaraan,
+          warna: '-',
+        );
+      }
       final area = _areaList.firstWhere(
         (a) => a.idArea == _selectedArea,
         orElse: () => throw Exception('Area tidak ditemukan'),
@@ -384,24 +436,140 @@ class _TransaksiMasukTabState extends State<TransaksiMasukTab> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    DropdownButtonFormField<int>(
-                      value: _selectedKendaraan,
-                      decoration: const InputDecoration(
-                        labelText: 'Pilih Kendaraan',
-                        prefixIcon: Icon(Icons.directions_car_outlined),
-                      ),
-                      items: _kendaraanList.map((k) {
-                        return DropdownMenuItem(
-                          value: k.idKendaraan,
-                          child: Text(k.displayName),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() => _selectedKendaraan = value);
+                    // Unified Vehicle Input (Autocomplete + Manual)
+                    FormField<String>(
+                      initialValue: _selectedKendaraan?.toString() ?? _kendaraanInputController.text,
+                      validator: (_) {
+                        if (_selectedKendaraan == null && _kendaraanInputController.text.trim().isEmpty) {
+                          return 'Pilih atau ketik kendaraan';
+                        }
+                        return null;
                       },
-                      validator: (value) =>
-                          value == null ? 'Pilih kendaraan' : null,
+                      builder: (field) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Autocomplete<KendaraanModel>(
+                              displayStringForOption: (k) => k.displayName,
+                              optionsBuilder: (textEditingValue) {
+                                final query = textEditingValue.text.toLowerCase();
+                                if (query.isEmpty) return _kendaraanList;
+                                return _kendaraanList.where((k) =>
+                                    k.platNomor.toLowerCase().contains(query) ||
+                                    k.jenisKendaraan.toLowerCase().contains(query) ||
+                                    k.pemilik.toLowerCase().contains(query));
+                              },
+                              onSelected: (KendaraanModel selected) {
+                                setState(() {
+                                  _selectedKendaraan = selected.idKendaraan;
+                                  _selectedKendaraanObj = selected;
+                                  _kendaraanInputController.text = selected.platNomor;
+                                });
+                                field.didChange(selected.idKendaraan.toString());
+                              },
+                              fieldViewBuilder: (context, controller, focusNode, onSubmit) {
+                                // Sync external controller
+                                controller.addListener(() {
+                                  if (controller.text != _kendaraanInputController.text) {
+                                    _kendaraanInputController.text = controller.text;
+                                  }
+                                });
+                                
+                                return TextFormField(
+                                  controller: controller,
+                                  focusNode: focusNode,
+                                  textCapitalization: TextCapitalization.characters,
+                                  decoration: InputDecoration(
+                                    labelText: 'Pilih / Ketik Kendaraan',
+                                    prefixIcon: const Icon(Icons.directions_car_outlined),
+                                    suffixIcon: controller.text.isNotEmpty
+                                        ? IconButton(
+                                            icon: const Icon(Icons.clear, size: 18),
+                                            onPressed: () {
+                                              setState(() {
+                                                _selectedKendaraan = null;
+                                                _selectedKendaraanObj = null;
+                                              });
+                                              controller.clear();
+                                              _kendaraanInputController.clear();
+                                              field.didChange(null);
+                                            },
+                                          )
+                                        : const Icon(Icons.arrow_drop_down),
+                                    hintText: 'Contoh: B 1234 XY',
+                                    errorText: field.errorText,
+                                  ),
+                                  onChanged: (val) {
+                                    if (_selectedKendaraan != null) {
+                                      setState(() {
+                                        _selectedKendaraan = null;
+                                        _selectedKendaraanObj = null;
+                                      });
+                                    }
+                                    field.didChange(val);
+                                  },
+                                );
+                              },
+                              optionsViewBuilder: (context, onSelected, options) {
+                                return Align(
+                                  alignment: Alignment.topLeft,
+                                  child: Material(
+                                    elevation: 6,
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: ConstrainedBox(
+                                      constraints: const BoxConstraints(maxHeight: 220),
+                                      child: ListView.builder(
+                                        padding: EdgeInsets.zero,
+                                        shrinkWrap: true,
+                                        itemCount: options.length,
+                                        itemBuilder: (context, index) {
+                                          final k = options.elementAt(index);
+                                          return ListTile(
+                                            leading: const Icon(Icons.directions_car_outlined),
+                                            title: Text(
+                                              k.platNomor,
+                                              style: const TextStyle(fontWeight: FontWeight.bold),
+                                            ),
+                                            subtitle: Text('${k.jenisKendaraan} · ${k.pemilik}'),
+                                            onTap: () => onSelected(k),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                            // Info kendaraan terpilih (hanya jika memilih dari database)
+                            if (_selectedKendaraanObj != null)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 6),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: Colors.green.withOpacity(0.08),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: Colors.green.shade200),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      const Icon(Icons.check_circle_outline, color: Colors.green, size: 16),
+                                      const SizedBox(width: 6),
+                                      Expanded(
+                                        child: Text(
+                                          '${_selectedKendaraanObj!.platNomor} · ${_selectedKendaraanObj!.jenisKendaraan} · ${_selectedKendaraanObj!.warna}',
+                                          style: const TextStyle(fontSize: 12, color: Colors.green),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                          ],
+                        );
+                      },
                     ),
+
                     const SizedBox(height: 16),
                     DropdownButtonFormField<int>(
                       value: _selectedTarif,
@@ -555,9 +723,12 @@ class _TransaksiKeluarTabState extends State<TransaksiKeluarTab> {
     int durasiMenit = duration.inMinutes;
     int jamTambahan = (durasiMenit / 60).ceil() - 1;
     if (jamTambahan < 0) jamTambahan = 0;
-    
+
     int durasiJam = jamTambahan + 1; // Total hour representation for UI
-    int biayaTotal = tarif.tarifPerJam + (jamTambahan * tarif.tarifNambah);
+
+    // Gratis jika kurang dari 5 menit
+    bool isGratis = durasiMenit < 5;
+    int biayaTotal = isGratis ? 0 : tarif.tarifPerJam + (jamTambahan * tarif.tarifNambah);
 
     // Get user info
     final user = await AuthService.getUser();
@@ -610,41 +781,94 @@ class _TransaksiKeluarTabState extends State<TransaksiKeluarTab> {
               'Waktu Keluar',
               DateFormat('dd/MM HH:mm').format(now),
             ),
-            _buildInfoRow('Durasi', '$durasiJam jam'),
-            const Divider(height: 24),
-            _buildInfoRow('Tarif Awal', 'Rp ${tarif.tarifPerJam}'),
-            if (jamTambahan > 0)
-              _buildInfoRow('Nambah ($jamTambahan jam)', 'Rp ${jamTambahan * tarif.tarifNambah}'),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.success.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.success, width: 2),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'TOTAL BAYAR',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-                  Text(
-                    NumberFormat.currency(
-                      locale: 'id_ID',
-                      symbol: 'Rp ',
-                      decimalDigits: 0,
-                    ).format(biayaTotal),
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                      color: AppColors.success,
-                    ),
-                  ),
-                ],
-              ),
+            _buildInfoRow(
+              'Durasi',
+              '$durasiMenit menit${durasiMenit >= 60 ? " ($durasiJam jam)" : ""}',
             ),
+            const Divider(height: 24),
+            if (isGratis) ...
+              [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.green, width: 2),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.celebration_rounded, color: Colors.green),
+                      const SizedBox(width: 8),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'PARKIR GRATIS!',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: Colors.green,
+                              ),
+                            ),
+                            Text(
+                              'Durasi kurang dari 5 menit',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.green,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Text(
+                        'Rp 0',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                          color: Colors.green,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ]
+            else ...
+              [
+                _buildInfoRow('Tarif Awal', 'Rp ${tarif.tarifPerJam}'),
+                if (jamTambahan > 0)
+                  _buildInfoRow('Nambah ($jamTambahan jam)', 'Rp ${jamTambahan * tarif.tarifNambah}'),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.success.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.success, width: 2),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'TOTAL BAYAR',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      ),
+                      Text(
+                        NumberFormat.currency(
+                          locale: 'id_ID',
+                          symbol: 'Rp ',
+                          decimalDigits: 0,
+                        ).format(biayaTotal),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                          color: AppColors.success,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
           ],
         ),
         actions: [
@@ -678,7 +902,9 @@ class _TransaksiKeluarTabState extends State<TransaksiKeluarTab> {
         transaksi: transaksi,
         waktuKeluar: now,
         durasiJam: durasiJam,
+        durasiMenit: durasiMenit,
         biayaTotal: biayaTotal,
+        isGratis: isGratis,
         tarif: tarif,
         namaPetugas: namaPetugas,
       );
@@ -696,7 +922,9 @@ class _TransaksiKeluarTabState extends State<TransaksiKeluarTab> {
     required TransaksiModel transaksi,
     required DateTime waktuKeluar,
     required int durasiJam,
+    required int durasiMenit,
     required int biayaTotal,
+    required bool isGratis,
     required TarifModel tarif,
     required String namaPetugas,
   }) async {
@@ -716,6 +944,7 @@ class _TransaksiKeluarTabState extends State<TransaksiKeluarTab> {
         durasiJam: durasiJam,
         biayaTotal: biayaTotal,
         namaPetugas: namaPetugas,
+        isGratis: isGratis,
       );
       await StrukService.printStruk(
         pdf,
@@ -782,36 +1011,73 @@ class _TransaksiKeluarTabState extends State<TransaksiKeluarTab> {
               'Keluar',
               DateFormat('dd/MM HH:mm').format(waktuKeluar),
             ),
-            _buildInfoRow('Durasi', '$durasiJam jam'),
-            const Divider(height: 24),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.success.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'TOTAL DIBAYAR',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-                  Text(
-                    NumberFormat.currency(
-                      locale: 'id_ID',
-                      symbol: 'Rp ',
-                      decimalDigits: 0,
-                    ).format(biayaTotal),
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                      color: AppColors.success,
-                    ),
-                  ),
-                ],
-              ),
+            _buildInfoRow(
+              'Durasi',
+              '$durasiMenit menit${durasiMenit >= 60 ? " ($durasiJam jam)" : ""}',
             ),
+            const Divider(height: 24),
+            if (isGratis)
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.green.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.green, width: 2),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.celebration_rounded, color: Colors.green),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'PARKIR GRATIS!',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: Colors.green,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      'Rp 0',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                        color: Colors.green,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.success.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'TOTAL DIBAYAR',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                    Text(
+                      NumberFormat.currency(
+                        locale: 'id_ID',
+                        symbol: 'Rp ',
+                        decimalDigits: 0,
+                      ).format(biayaTotal),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                        color: AppColors.success,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
           ],
         ),
         actions: [
@@ -835,6 +1101,7 @@ class _TransaksiKeluarTabState extends State<TransaksiKeluarTab> {
                   durasiJam: durasiJam,
                   biayaTotal: biayaTotal,
                   namaPetugas: namaPetugas,
+                  isGratis: isGratis,
                 );
 
                 // Print or preview receipt

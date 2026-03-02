@@ -51,24 +51,31 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
 
     if (!mounted) return;
 
-    try {
-      List listUser;
+    if (result['success'] == true && result['data'] != null) {
+      try {
+        List listUser;
 
-      if (result['data'] is List) {
-        // tanpa pagination
-        listUser = result['data'];
-      } else {
-        // pakai pagination
-        listUser = result['data']['data'];
+        if (result['data'] is List) {
+          // tanpa pagination
+          listUser = result['data'];
+        } else {
+          // pakai pagination
+          listUser = result['data']['data'] ?? [];
+        }
+
+        setState(() {
+          _users = listUser.map((e) => UserModel.fromJson(e)).toList();
+          _isLoading = false;
+        });
+      } catch (e) {
+        setState(() {
+          _error = 'Format data tidak valid: $e';
+          _isLoading = false;
+        });
       }
-
+    } else {
       setState(() {
-        _users = listUser.map((e) => UserModel.fromJson(e)).toList();
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _error = e.toString();
+        _error = result['message'] ?? 'Gagal memuat data user';
         _isLoading = false;
       });
     }
