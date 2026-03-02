@@ -72,6 +72,10 @@ class _VehiclesScreenState extends State<VehiclesScreen> {
             .map((e) => KendaraanModel.fromJson(e))
             .toList();
 
+        // URUTKAN BERDASARKAN PLAT NOMOR (A-Z) - Case Insensitive
+        kendaraanParsed.sort((a, b) => 
+            a.platNomor.toUpperCase().compareTo(b.platNomor.toUpperCase()));
+
         setState(() {
           _kendaraan = kendaraanParsed;
           _filteredKendaraan = kendaraanParsed;
@@ -207,35 +211,91 @@ class _VehiclesScreenState extends State<VehiclesScreen> {
                         return Card(
                           margin: const EdgeInsets.only(bottom: 12),
                           child: ListTile(
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                             leading: CircleAvatar(
-                              backgroundColor: AppColors.primary,
+                              backgroundColor: kendaraan.jenisKendaraan.toLowerCase().contains('motor')
+                                  ? Colors.orange.shade700
+                                  : kendaraan.jenisKendaraan.toLowerCase().contains('mobil')
+                                      ? AppColors.primary
+                                      : Colors.teal,
                               child: Icon(
-                                kendaraan.jenisKendaraan.toLowerCase().contains(
-                                      'motor',
-                                    )
+                                kendaraan.jenisKendaraan.toLowerCase().contains('motor')
                                     ? Icons.two_wheeler_rounded
-                                    : Icons.directions_car_rounded,
+                                    : kendaraan.jenisKendaraan.toLowerCase().contains('mobil')
+                                        ? Icons.directions_car_rounded
+                                        : Icons.airport_shuttle_rounded,
                                 color: Colors.white,
                               ),
                             ),
-                            title: Text(
-                              kendaraan.platNomor,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
+                            title: Row(
+                              children: [
+                                Text(
+                                  kendaraan.platNomor.isNotEmpty ? kendaraan.platNomor : 'Tanpa Plat',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                if (kendaraan.jenisKendaraan.isNotEmpty)
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: kendaraan.jenisKendaraan.toLowerCase().contains('motor')
+                                          ? Colors.orange.shade100
+                                          : AppColors.primary.withOpacity(0.12),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text(
+                                      kendaraan.jenisKendaraan.toUpperCase(),
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: kendaraan.jenisKendaraan.toLowerCase().contains('motor')
+                                            ? Colors.orange.shade800
+                                            : AppColors.primary,
+                                      ),
+                                    ),
+                                  ),
+                              ],
                             ),
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(kendaraan.jenisKendaraan),
-                                Text(
-                                  'Warna: ${kendaraan.warna}',
-                                  style: const TextStyle(fontSize: 12),
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    const Icon(Icons.color_lens_outlined, size: 13, color: Colors.grey),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      kendaraan.warna.isEmpty || kendaraan.warna == '-'
+                                          ? 'Warna tidak dicatat'
+                                          : kendaraan.warna,
+                                      style: const TextStyle(fontSize: 12),
+                                    ),
+                                  ],
                                 ),
-                                if (kendaraan.pemilik.isNotEmpty)
-                                  Text(
-                                    'Pemilik: ${kendaraan.pemilik}',
-                                    style: const TextStyle(fontSize: 12),
+                                if (kendaraan.pemilik.isNotEmpty && kendaraan.pemilik != 'Tamu')
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.person_outline_rounded, size: 13, color: Colors.grey),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        'Pemilik: ${kendaraan.pemilik}',
+                                        style: const TextStyle(fontSize: 12),
+                                      ),
+                                    ],
+                                  ),
+                                if (kendaraan.namaPendaftar.isNotEmpty)
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.badge_outlined, size: 13, color: Colors.grey),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        'Didaftarkan oleh: ${kendaraan.namaPendaftar}',
+                                        style: const TextStyle(fontSize: 11, color: Colors.grey),
+                                      ),
+                                    ],
                                   ),
                               ],
                             ),

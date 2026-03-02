@@ -5,6 +5,7 @@ class KendaraanModel {
   final String warna;
   final String pemilik;
   final int idUser;
+  final String namaPendaftar;
 
 
   KendaraanModel({
@@ -14,19 +15,20 @@ class KendaraanModel {
     required this.warna,
     this.pemilik = '',
     this.idUser = 0,
+    this.namaPendaftar = '',
   });
 
 
   factory KendaraanModel.fromJson(Map<String, dynamic> json) {
     return KendaraanModel(
-      idKendaraan: json['id_kendaraan'] ?? 0,
-      jenisKendaraan: json['jenis_kendaraan'] ?? '',
-      platNomor: json['plat_nomor'] ?? '',
-      warna: json['warna'] ?? '',
-      pemilik: json['pemilik'] ?? '',
-      idUser: json['id_user'] ?? 0,
+      idKendaraan: int.tryParse(json['id_kendaraan']?.toString() ?? '0') ?? 0,
+      jenisKendaraan: json['jenis_kendaraan']?.toString() ?? '',
+      platNomor: json['plat_nomor']?.toString() ?? '',
+      warna: json['warna']?.toString() ?? '',
+      pemilik: json['pemilik']?.toString() ?? '',
+      idUser: int.tryParse(json['id_user']?.toString() ?? '0') ?? 0,
+      namaPendaftar: json['nama_pendaftar']?.toString() ?? '',
     );
-
   }
 
   Map<String, dynamic> toJson() {
@@ -37,6 +39,7 @@ class KendaraanModel {
       'warna': warna,
       'pemilik': pemilik,
       'id_user': idUser,
+      'nama_pendaftar': namaPendaftar,
     };
 
   }
