@@ -6,7 +6,7 @@ class KendaraanModel {
   final String pemilik;
   final int idUser;
   final String namaPendaftar;
-
+  final String? photoKendaraan;
 
   KendaraanModel({
     required this.idKendaraan,
@@ -16,8 +16,8 @@ class KendaraanModel {
     this.pemilik = '',
     this.idUser = 0,
     this.namaPendaftar = '',
+    this.photoKendaraan,
   });
-
 
   factory KendaraanModel.fromJson(Map<String, dynamic> json) {
     return KendaraanModel(
@@ -28,6 +28,7 @@ class KendaraanModel {
       pemilik: json['pemilik']?.toString() ?? '',
       idUser: int.tryParse(json['id_user']?.toString() ?? '0') ?? 0,
       namaPendaftar: json['nama_pendaftar']?.toString() ?? '',
+      photoKendaraan: json['photo_kendaraan']?.toString(),
     );
   }
 
@@ -40,8 +41,8 @@ class KendaraanModel {
       'pemilik': pemilik,
       'id_user': idUser,
       'nama_pendaftar': namaPendaftar,
+      if (photoKendaraan != null) 'photo_kendaraan': photoKendaraan,
     };
-
   }
 
   String get displayName => '$jenisKendaraan - $platNomor';
