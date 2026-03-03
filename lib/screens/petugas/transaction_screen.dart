@@ -1,4 +1,7 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/widgets.dart' as pw;
 import '../../models/transaksi_model.dart';
@@ -13,7 +16,6 @@ import '../../widgets/error_widget.dart';
 import '../../widgets/empty_state_widget.dart';
 import '../../utils/notifications.dart';
 import '../../services/refresh_service.dart';
-
 
 
 class TransactionScreen extends StatefulWidget {
@@ -82,6 +84,10 @@ class _TransaksiMasukTabState extends State<TransaksiMasukTab> {
   int? _selectedTarif;
   int? _selectedArea;
 
+  // Foto kendaraan (opsional)
+  File? _selectedPhoto;         // Foto baru yang dipilih user
+  String? _existingPhotoUrl;    // Foto existing dari database (ditampilkan saat pilih kendaraan)
+
   final TextEditingController _kendaraanInputController = TextEditingController();
 
   bool _isLoading = true;
@@ -98,6 +104,17 @@ class _TransaksiMasukTabState extends State<TransaksiMasukTab> {
   void dispose() {
     _kendaraanInputController.dispose();
     super.dispose();
+  }
+
+  // Pilih foto dari file (Windows-compatible)
+  Future<void> _pickPhoto() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+      allowMultiple: false,
+    );
+    if (result != null && result.files.single.path != null) {
+      setState(() => _selectedPhoto = File(result.files.single.path!));
+    }
   }
 
   Future<void> _loadData() async {
@@ -197,7 +214,10 @@ class _TransaksiMasukTabState extends State<TransaksiMasukTab> {
       };
     }
 
-    final result = await TransaksiService.transaksiMasuk(data);
+    final result = await TransaksiService.transaksiMasuk(
+      data,
+      photoFile: _selectedPhoto,
+    );
 
     if (!mounted) return;
 
@@ -214,6 +234,8 @@ class _TransaksiMasukTabState extends State<TransaksiMasukTab> {
       setState(() {
         _selectedKendaraan = null;
         _selectedKendaraanObj = null;
+        _selectedPhoto = null;
+        _existingPhotoUrl = null;
         _kendaraanInputController.clear();
         _selectedTarif = null;
         _selectedArea = null;
@@ -390,6 +412,96 @@ class _TransaksiMasukTabState extends State<TransaksiMasukTab> {
 
   }
 
+  Widget _buildPhotoPicker() {
+    final bool hasNewPhoto = _selectedPhoto != null;
+    final bool hasExisting = _existingPhotoUrl != null && !hasNewPhoto;
+
+    return GestureDetector(
+      onTap: _pickPhoto,
+      child: Container(
+        width: double.infinity,
+        height: 130,
+        decoration: BoxDecoration(
+          color: AppColors.primary.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: (hasNewPhoto || hasExisting) ? AppColors.primary : Colors.grey.shade300,
+            width: (hasNewPhoto || hasExisting) ? 2 : 1.5,
+          ),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: (hasNewPhoto || hasExisting)
+            ? Stack(
+                fit: StackFit.expand,
+                children: [
+                  hasNewPhoto
+                      ? Image.file(_selectedPhoto!, fit: BoxFit.cover)
+                      : Image.network(
+                          _existingPhotoUrl!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => _photoPlaceholder(),
+                        ),
+                  Positioned(
+                    bottom: 6,
+                    right: 6,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black54,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      child: Text(
+                        hasNewPhoto ? 'Ubah Foto' : 'Foto Tersimpan · Klik untuk ganti',
+                        style: const TextStyle(color: Colors.white, fontSize: 11),
+                      ),
+                    ),
+                  ),
+                  // Tombol hapus foto baru saja dipilih
+                  if (hasNewPhoto)
+                    Positioned(
+                      top: 6,
+                      right: 6,
+                      child: GestureDetector(
+                        onTap: () => setState(() => _selectedPhoto = null),
+                        child: Container(
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                          padding: const EdgeInsets.all(4),
+                          child: const Icon(Icons.close, color: Colors.white, size: 16),
+                        ),
+                      ),
+                    ),
+                ],
+              )
+            : _photoPlaceholder(),
+      ),
+    );
+  }
+
+  Widget _photoPlaceholder() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withOpacity(0.1),
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(Icons.add_a_photo_outlined, color: AppColors.primary, size: 26),
+        ),
+        const SizedBox(height: 8),
+        const Text('Tambah Foto Kendaraan (Opsional)',
+            style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.primary, fontSize: 13)),
+        const SizedBox(height: 2),
+        Text('Klik untuk pilih dari file',
+            style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
+      ],
+    );
+  }
+
   Widget _buildStrukRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -464,6 +576,14 @@ class _TransaksiMasukTabState extends State<TransaksiMasukTab> {
                                   _selectedKendaraan = selected.idKendaraan;
                                   _selectedKendaraanObj = selected;
                                   _kendaraanInputController.text = selected.platNomor;
+                                  // Tampilkan foto existing jika ada
+                                  _selectedPhoto = null;
+                                  if (selected.photoKendaraan != null && selected.photoKendaraan!.isNotEmpty) {
+                                    final base = 'https://dishonestly-nondistracted-vania.ngrok-free.dev';
+                                    _existingPhotoUrl = '$base${selected.photoKendaraan}';
+                                  } else {
+                                    _existingPhotoUrl = null;
+                                  }
                                 });
                                 field.didChange(selected.idKendaraan.toString());
                               },
@@ -489,6 +609,8 @@ class _TransaksiMasukTabState extends State<TransaksiMasukTab> {
                                               setState(() {
                                                 _selectedKendaraan = null;
                                                 _selectedKendaraanObj = null;
+                                                _existingPhotoUrl = null;
+                                                _selectedPhoto = null;
                                               });
                                               controller.clear();
                                               _kendaraanInputController.clear();
@@ -610,6 +732,9 @@ class _TransaksiMasukTabState extends State<TransaksiMasukTab> {
                       },
                       validator: (value) => value == null ? 'Pilih area' : null,
                     ),
+                    const SizedBox(height: 16),
+                    // ── Foto Kendaraan (Opsional) ──
+                    _buildPhotoPicker(),
                     const SizedBox(height: 24),
                     ElevatedButton.icon(
                       onPressed: _isSubmitting ? null : _submit,

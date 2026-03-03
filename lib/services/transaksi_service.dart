@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'api_config.dart';
 
@@ -32,15 +33,32 @@ class TransaksiService {
     }
   }
 
-  /// Transaksi masuk (kendaraan masuk parkir)
-  static Future<Map<String, dynamic>> transaksiMasuk(Map<String, dynamic> data) async {
+  /// Transaksi masuk (kendaraan masuk parkir) — support optional photo
+  static Future<Map<String, dynamic>> transaksiMasuk(
+    Map<String, dynamic> data, {
+    File? photoFile,
+  }) async {
     try {
-      final headers = await ApiConfig.getHeaders();
-      final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}/transaksi/masuk'),
-        headers: headers,
-        body: jsonEncode(data),
-      );
+      final token = await ApiConfig.getToken();
+      final uri = Uri.parse('${ApiConfig.baseUrl}/transaksi/masuk');
+
+      // Selalu kirim sebagai multipart agar backend bisa terima foto
+      final request = http.MultipartRequest('POST', uri);
+      if (token != null) request.headers['Authorization'] = 'Bearer $token';
+      request.headers['ngrok-skip-browser-warning'] = 'true';
+
+      // Tambahkan field data
+      data.forEach((key, value) {
+        if (value != null) request.fields[key] = value.toString();
+      });
+
+      // Attach foto jika ada
+      if (photoFile != null) {
+        request.files.add(await http.MultipartFile.fromPath('photo', photoFile.path));
+      }
+
+      final streamed = await request.send();
+      final response = await http.Response.fromStream(streamed);
       return ApiConfig.handleResponse(response);
     } catch (e) {
       return {'success': false, 'message': 'Koneksi gagal: $e'};

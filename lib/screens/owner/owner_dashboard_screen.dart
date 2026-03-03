@@ -598,18 +598,25 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
             children: [
               Row(
                 children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(
-                      Icons.directions_car_rounded,
-                      color: AppColors.primary,
-                    ),
-                  ),
+                  // Foto kendaraan atau icon default
+                  Builder(builder: (_) {
+                    final photo = transaction['photo_kendaraan'];
+                    final baseUrl = 'https://dishonestly-nondistracted-vania.ngrok-free.dev';
+                    if (photo != null && photo.toString().isNotEmpty) {
+                      return ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.network(
+                          '$baseUrl$photo',
+                          width: 52,
+                          height: 52,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => _buildCarIcon(),
+                        ),
+                      );
+                    }
+                    return _buildCarIcon();
+                  }),
+
                   const SizedBox(width: 16),
                   Expanded(
                     child: Column(
@@ -715,6 +722,18 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
           ),
         ).animate().fade(delay: (100 * index).ms).slideX(begin: 0.1);
       },
+    );
+  }
+
+  Widget _buildCarIcon() {
+    return Container(
+      width: 52,
+      height: 52,
+      decoration: BoxDecoration(
+        color: AppColors.primary.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: const Icon(Icons.directions_car_rounded, color: AppColors.primary),
     );
   }
 

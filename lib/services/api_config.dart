@@ -8,10 +8,10 @@ import 'package:shared_preferences/shared_preferences.dart';
  * menggunakan SharedPreferences.
  */
 class ApiConfig {
-  // URL ngrok untuk production/testing
+  // URL ngrok untuk testing/production
   static const String baseUrl = 'https://dishonestly-nondistracted-vania.ngrok-free.dev/api';
-  
-  // Untuk development lokal, uncomment baris di bawah:
+
+  // Untuk development lokal:
   // static const String baseUrl = 'http://localhost:3000/api';
 
   /// Mendapatkan headers dengan token authorization
@@ -26,8 +26,18 @@ class ApiConfig {
 
   /// Handle response dari API
   static Map<String, dynamic> handleResponse(http.Response response) {
-    final data = jsonDecode(response.body);
-    
+    final body = response.body.trim();
+
+    // Deteksi jika server mengembalikan HTML (mis. ngrok warning page / server error)
+    if (body.startsWith('<!DOCTYPE') || body.startsWith('<html')) {
+      return {
+        'success': false,
+        'message': 'Server mengembalikan halaman HTML. Pastikan backend berjalan dan URL API benar. (HTTP ${response.statusCode})',
+      };
+    }
+
+    final data = jsonDecode(body);
+
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return data;
     } else {
