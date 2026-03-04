@@ -117,6 +117,21 @@ class _TransaksiMasukTabState extends State<TransaksiMasukTab> {
     }
   }
 
+  // Auto pilih tarif berdasarkan jenis kendaraan
+  void _autoSelectTarif(String jenisKendaraan) {
+    final match = _tarifList.firstWhere(
+      (t) => t.jenisKendaraan.toLowerCase() == jenisKendaraan.toLowerCase(),
+      orElse: () => _tarifList.firstWhere(
+        (t) => jenisKendaraan.toLowerCase().contains(t.jenisKendaraan.toLowerCase()) ||
+               t.jenisKendaraan.toLowerCase().contains(jenisKendaraan.toLowerCase()),
+        orElse: () => TarifModel(idTarif: -1, jenisKendaraan: '', tarifPerJam: 0, tarifNambah: 0),
+      ),
+    );
+    if (match.idTarif != -1) {
+      setState(() => _selectedTarif = match.idTarif);
+    }
+  }
+
   Future<void> _loadData() async {
     setState(() {
       _isLoading = true;
@@ -585,6 +600,8 @@ class _TransaksiMasukTabState extends State<TransaksiMasukTab> {
                                     _existingPhotoUrl = null;
                                   }
                                 });
+                                // Auto pilih tarif sesuai jenis kendaraan
+                                _autoSelectTarif(selected.jenisKendaraan);
                                 field.didChange(selected.idKendaraan.toString());
                               },
                               fieldViewBuilder: (context, controller, focusNode, onSubmit) {
@@ -626,6 +643,7 @@ class _TransaksiMasukTabState extends State<TransaksiMasukTab> {
                                       setState(() {
                                         _selectedKendaraan = null;
                                         _selectedKendaraanObj = null;
+                                        _selectedTarif = null; // reset tarif saat kendaraan diubah manual
                                       });
                                     }
                                     field.didChange(val);
@@ -713,6 +731,21 @@ class _TransaksiMasukTabState extends State<TransaksiMasukTab> {
                       validator: (value) =>
                           value == null ? 'Pilih tarif' : null,
                     ),
+                    // Badge info auto-select tarif
+                    if (_selectedKendaraan != null && _selectedTarif != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 6),
+                        child: Row(
+                          children: [
+                            Icon(Icons.auto_awesome_rounded, size: 13, color: Colors.orange.shade700),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Tarif dipilih otomatis sesuai jenis kendaraan. Bisa diubah manual.',
+                              style: TextStyle(fontSize: 11, color: Colors.orange.shade700),
+                            ),
+                          ],
+                        ),
+                      ),
                     const SizedBox(height: 16),
                     DropdownButtonFormField<int>(
                       value: _selectedArea,
