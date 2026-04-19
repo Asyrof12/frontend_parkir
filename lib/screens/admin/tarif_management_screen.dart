@@ -345,13 +345,13 @@ class _TarifFormDialogState extends State<TarifFormDialog> {
     setState(() => _isLoading = false);
 
     if (result['success']) {
-      Navigator.pop(context);
       AppNotification.success(
         context,
         widget.tarif == null ? 'Tarif berhasil ditambahkan' : 'Tarif berhasil diupdate',
       );
       widget.onSaved();
       RefreshService.instance.refreshDashboard();
+      Navigator.pop(context);
     } else {
 
       AppNotification.error(context, result['message'] ?? 'Terjadi kesalahan');

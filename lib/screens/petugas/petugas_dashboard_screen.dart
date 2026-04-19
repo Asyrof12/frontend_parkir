@@ -225,13 +225,13 @@ class _PetugasDashboardScreenState extends State<PetugasDashboardScreen>
           childAspectRatio: 1.2,
           children: [
             _buildStatCard(
-              "Kendaraan Masuk",
+              "Total Masuk Hari Ini",
               stats['kendaraan_masuk']?.toString() ?? '0',
               Icons.login_rounded,
               AppColors.success,
             ).animate().scale(delay: 200.ms),
             _buildStatCard(
-              "Kendaraan Keluar",
+              "Total Keluar Hari Ini",
               stats['kendaraan_keluar']?.toString() ?? '0',
               Icons.logout_rounded,
               AppColors.accent,

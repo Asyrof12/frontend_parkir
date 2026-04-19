@@ -23,6 +23,7 @@ import 'petugas/petugas_history_screen.dart';
 // Owner screens
 import 'owner/owner_dashboard_screen.dart';
 import 'owner/owner_history_screen.dart';
+import 'owner/owner_chart_screen.dart';
 
 /**
  * Cangkang Utama Aplikasi (Navigation Shell)
@@ -86,9 +87,10 @@ class _MainShellState extends State<MainShell> {
         ];
       case 'owner':
         return [
-          _NavItem(Icons.dashboard_rounded, 'Dashboard', OwnerDashboardScreen()),
-          _NavItem(Icons.assessment_rounded, 'Rekap', OwnerHistoryScreen()),
-          _NavItem(Icons.person_rounded, 'Profil', ProfileScreen()),
+          _NavItem(Icons.dashboard_rounded, 'Dashboard', const OwnerDashboardScreen()),
+          _NavItem(Icons.assessment_rounded, 'Rekap', const OwnerHistoryScreen()),
+          _NavItem(Icons.bar_chart_rounded, 'Grafik', const OwnerChartScreen()),
+          _NavItem(Icons.person_rounded, 'Profil', const ProfileScreen()),
         ];
       default:
         return [

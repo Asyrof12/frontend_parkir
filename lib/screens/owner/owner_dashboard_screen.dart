@@ -405,7 +405,7 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
           children: [
             Expanded(
               child: _buildStatCard(
-                'Kendaraan Masuk',
+                'Total Masuk Hari Ini',
                 kendaraanMasuk.toString(),
                 Icons.login_rounded,
                 AppColors.success,
@@ -414,7 +414,7 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
             const SizedBox(width: 16),
             Expanded(
               child: _buildStatCard(
-                'Kendaraan Keluar',
+                'Total Keluar Hari Ini',
                 kendaraanKeluar.toString(),
                 Icons.logout_rounded,
                 AppColors.accent,
